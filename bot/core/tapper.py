@@ -9,8 +9,8 @@ import traceback
 from bot.utils import logger
 from bot.config import settings
 from bot.exceptions import InvalidSession
-from bot.utils.scripts import decode_cipher
 from bot.utils.fingerprint import FINGERPRINT
+from bot.utils.scripts import decode_cipher, find_best
 
 from telethon.sync import functions
 from telethon import TelegramClient as Client
@@ -619,8 +619,8 @@ class Tapper:
                 )
 
                 if settings.AUTO_UPGRADE is True:
+                    upgrades = await self.get_upgrades()
                     for _ in range(settings.UPGRADES_COUNT):
-                        upgrades = await self.get_upgrades()
                         upgrades = upgrades.get('upgradesForBuy', [])
                         
                         available_upgrades = [
@@ -635,34 +635,14 @@ class Tapper:
                             )
                         ]
 
-                        queue = []
+                        free_money = balance - settings.BALANCE_TO_SAVE
+                        queue      = find_best(free_money, available_upgrades)
 
-                        for upgrade in available_upgrades:
-                            upgrade_id      = upgrade['id']
-                            level           = upgrade['level']
-                            price           = upgrade['price']
-                            profit          = upgrade['profitPerHourDelta']
-                            significance    = profit / max(price, 1)
-                            free_money      = balance - settings.BALANCE_TO_SAVE
-                            max_price_limit = earn_on_hour * 10
-
-                            if(
-                                (free_money * 0.7) >= price
-                                and level <= settings.MAX_LEVEL
-                                and profit > 0
-                                and price < max_price_limit
-                            ):
-                                heapq.heappush(queue, (-significance, upgrade_id, upgrade))
-
-                        if not queue:
-                            continue
-
-                        top_card   = heapq.nsmallest(1, queue)[0]
-                        upgrade    = top_card[2]
+                        upgrade    = queue[0]
                         upgrade_id = upgrade['id']
                         level      = upgrade['level']
                         price      = upgrade['price']
-                        profit     = upgrade['profitPerHourDelta']
+                        profit     = upgrade['profit']
 
                         logger.info(f"{self.session} | Sleep 5s before upgrade <e>{upgrade_id}</e>")
                         await asyncio.sleep(delay=5)
