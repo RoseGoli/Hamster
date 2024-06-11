@@ -1,0 +1,8 @@
+aiohttp==3.9.3
+aiohttp_proxy==0.1.2
+better_proxy==1.2.0
+loguru==0.7.2
+pydantic_settings==2.3.1
+Telethon==1.33.1
+numpy
+requests
