@@ -1,6 +1,5 @@
 import os
 import json
-import heapq
 import asyncio
 import aiohttp
 import requests
@@ -319,7 +318,7 @@ class Tapper:
             logger.error(
                 f"{self.session} | Failed [getUpgrades]: {error or response}"
             )
-            return []
+            return {}
         
     async def buy_upgrade(self, upgrade_id: str):
         response, error = await self.send_request(
@@ -621,7 +620,12 @@ class Tapper:
                 if settings.AUTO_UPGRADE is True:
                     upgrades = await self.get_upgrades()
                     for _ in range(settings.UPGRADES_COUNT):
-                        upgrades = upgrades.get('upgradesForBuy', [])
+                        if isinstance(upgrades, dict):
+                            upgrades = upgrades.get('upgradesForBuy', [])
+                        elif isinstance(upgrades, list):
+                            pass
+                        else:
+                            upgrades = []
                         
                         available_upgrades = [
                             data for data in upgrades
@@ -638,6 +642,9 @@ class Tapper:
                         free_money = balance - settings.BALANCE_TO_SAVE
                         queue      = find_best(free_money, available_upgrades)
 
+                        if not queue:
+                            continue
+                        
                         upgrade    = queue[0]
                         upgrade_id = upgrade['id']
                         level      = upgrade['level']
