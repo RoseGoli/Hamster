@@ -1,8 +1,11 @@
+import os
+
 import random
 import string
 import base64
 import hashlib
 
+from config import settings
 from urllib.parse import unquote
 from fake_useragent import UserAgent
 
@@ -78,3 +81,10 @@ def parse_webapp_url(auth_url: str) -> str:
     return unquote(
         string = unquote(
             string = auth_url.split('tgWebAppData=', maxsplit=1)[1].split('&tgWebAppVersion', maxsplit=1)[0]))
+
+def getSessions():
+    for file in os.listdir(settings.SESSION_PATH):
+        if file.endswith('.session'):
+            r = file.replace('.session', '')
+            if r != settings.MAIN_NAME:
+                yield r
