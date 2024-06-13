@@ -1,4 +1,4 @@
 import asyncio
-from bot.core.registrator import register_sessions
+from utils.registrator import register_sessions
 
 asyncio.run(register_sessions())

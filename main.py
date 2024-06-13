@@ -1,12 +1,16 @@
+import os
 import sys
 import asyncio
 import traceback
 
-from bot.config import settings
-from bot.app import getClient
+from config import settings
+from telegram.client import getClient, startClient
+
+if not os.path.exists(settings.SESSION_PATH):
+    os.mkdir(settings.SESSION_PATH)
 
 try:
-    import bot.plugins as plugins
+    import plugins as plugins
 except ImportError:
     try:
         from . import plugins
@@ -17,7 +21,7 @@ except ImportError:
 
 async def main():
     bot = await getClient()
-    await bot.start(bot_token = settings.TG_TOKEN)
+    await startClient()
     bot.parse_mode = 'html'
 
     try:
