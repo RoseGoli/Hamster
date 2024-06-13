@@ -1,183 +1,49 @@
 import os
-import json
 import asyncio
-import aiohttp
-import requests
 import traceback
 
-from bot.utils import logger
-from bot.config import settings
-from bot.exceptions import InvalidSession
-from bot.utils.fingerprint import FINGERPRINT
-from bot.utils.scripts import decode_cipher, find_best
-
-from telethon.sync import functions
+from config import settings
+from utils.logger import logger
+from .fingerprint import FINGERPRINT
 from telethon import TelegramClient as Client
+from utils.scripts import decode_cipher, find_best, get_mobile_user_agent
 
 from time import time
 from random import randint
-from urllib.parse import unquote
 from datetime import datetime, timedelta
+
+from telegram.telegramApp import TelegramApp
+from utils.request import Request
 
 class Tapper:
     def __init__(self, tg_client: Client):
         self.token       = None
-        self.headers     = {}
-        self.client      = tg_client
         self.expire_date = datetime.now()
+
+        self.client      = TelegramApp(tg_client)
         self.session     = os.path.basename(tg_client.session.filename)
 
-    def update_headers(self, new_headers):
-        """
-        Update the headers with new ones or add new headers.
-
-        Args:
-            new_headers (dict): A dictionary containing the new headers to add or update.
-
-        Returns:
-            None
-        """
-        self.headers.update(new_headers)
+        self.http_client = Request(
+            base_url     = 'https://api.hamsterkombat.io',
+            base_headers = {
+                'Accept'             : 'application/json',
+                'Accept-Language'    : 'en-US,ru;q=0.9',
+                'Content-Type'       : 'application/json',
+                'Connection'         : 'keep-alive',
+                'Origin'             : 'https://hamsterkombat.io',
+                'Referer'            : 'https://hamsterkombat.io/',
+                'Sec-Fetch-Dest'     : 'empty',
+                'Sec-Fetch-Mode'     : 'cors',
+                'Sec-Fetch-Site'     : 'same-site',
+                'Sec-Ch-Ua'          : '"Android WebView";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
+                'Sec-Ch-Ua-mobile'   : '?1',
+                'Sec-Ch-Ua-platform' : '"Android"',
+                "User-Agent"         : get_mobile_user_agent(),
+            }
+        )
     
-    async def send_request(self, method, url=None, endpoint=None, data=None, timeout=15, retries=3, backoff_factor=3):
-        """
-        Send an HTTP GET or POST request and return the response and any errors.
-        
-        Args:
-            method (str): The HTTP method ('GET' or 'POST').
-            url (str, optional): The full URL for the request.
-            endpoint (str, optional): The endpoint to append to the base URL.
-            data (dict, optional): The data to send with the request. For POST requests, this is the JSON data.
-            timeout (int, optional): Timeout for the request in seconds. Defaults to 15 seconds.
-            retries (int, optional): Number of retry attempts. Defaults to 3.
-            backoff_factor (float, optional): Backoff multiplier for exponential backoff. Defaults to 1.
-        
-        Returns:
-            tuple: A tuple containing the response object and an error message (if any).
-        """
-
-        headers = {
-            'Accept'             : 'application/json',
-            'Accept-Language'    : 'en-US,ru;q=0.9',
-            'Content-Type'       : 'application/json',
-            'Connection'         : 'keep-alive',
-            'Origin'             : 'https://hamsterkombat.io',
-            'Referer'            : 'https://hamsterkombat.io/',
-            'Sec-Fetch-Dest'     : 'empty',
-            'Sec-Fetch-Mode'     : 'cors',
-            'Sec-Fetch-Site'     : 'same-site',
-            'Sec-Ch-Ua'          : '"Android WebView";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
-            'Sec-Ch-Ua-mobile'   : '?1',
-            'Sec-Ch-Ua-platform' : '"Android"',
-            "User-Agent"         : "Mozilla/5.0 (Linux; Android 11; SM-A305F Build/RP1A.200720.012; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/125.0.6422.147 Mobile Safari/537.36",
-        }
-
-        temp_header = headers.copy()
-        temp_header.update(self.headers)
-
-        if url:
-            endpoint = url
-        elif endpoint:
-            endpoint = f'https://api.hamsterkombat.io{endpoint}'
-        else:
-            return None, "URL or endpoint must be provided"
-        
-        attempt = 0
-        while attempt < retries:
-            try:
-                async with aiohttp.ClientSession(headers=temp_header) as session:
-                    if method.upper() == 'GET':
-                        async with session.get(endpoint, params=data, timeout=timeout) as response:
-                            if response.status != 422:
-                                response.raise_for_status()
-                            try:
-                                return await response.json(), None
-                            except aiohttp.ContentTypeError:
-                                return json.loads(await response.text()), None
-                    elif method.upper() == 'POST':
-                        async with session.post(endpoint, json=data, timeout=timeout) as response:
-                            if response.status != 422:
-                                response.raise_for_status()
-                            try:
-                                return await response.json(), None
-                            except aiohttp.ContentTypeError:
-                                return json.loads(await response.text()), None
-                    else:
-                        return None, f"Unsupported HTTP method: {method}"
-            except (aiohttp.ClientError, asyncio.TimeoutError, requests.exceptions.HTTPError) as e:
-                attempt += 1
-                if attempt == retries:
-                    return None, str(e)
-                
-                wait_time = backoff_factor * (2 ** (attempt - 1))
-                logger.error(f"{self.session} | attempt <y>{attempt}</y>, <r>{wait_time} sec</r> before retry!")
-                await asyncio.sleep(wait_time)
-
-        return None, "Failed after retries"
-        
-    async def connect_client(self):
-        try:
-            if not self.client.is_connected():
-                await self.client.connect()
-                logger.info(f"Connected client: {self.session}")
-        except Exception as error:
-            logger.info(f"Error connection client: {self.session}, {str(error)}")
-            raise InvalidSession(self.session)
-
-    async def disconnect_client(self):
-        try:
-            if self.client.is_connected():
-                await self.client.disconnect()
-                logger.info(f"Disconnected client: {self.session}")
-        except Exception as error:
-            logger.info(f"Error disconnect client: {self.session}, {str(error)}")
-            raise Exception(self.session)
-        
-    async def join_channel(self, channel:str):
-        result = False
-        try:
-            await self.connect_client()
-            await self.client(functions.channels.JoinChannelRequest(channel))
-            await self.disconnect_client()
-            result = True
-        except Exception as error:
-            logger.error(f"{self.session} | Unknown error during join: {error}")
-        
-        return result
-    
-    async def get_web_data(self, only_url: bool = False) -> str:
-        try:
-            await self.connect_client()
-
-            web_view = await self.client(
-                functions.messages.RequestWebViewRequest(
-                    peer          = 'hAmster_kombat_bot',
-                    bot           = 'hAmster_kombat_bot',
-                    platform      = 'android',
-                    from_bot_menu = False,
-                    start_param   = 'kentId1692387237',
-                    url           = 'https://hamsterkombat.io/'
-                )
-            )
-
-            await self.disconnect_client()
-
-            auth_url    = web_view.url
-            tg_web_data = unquote(
-                string  = unquote(
-                    string = auth_url.split('tgWebAppData=', maxsplit=1)[1].split('&tgWebAppVersion', maxsplit=1)[0]))
-            
-            if only_url:
-                return auth_url
-            
-            return tg_web_data
-        
-        except Exception as error:
-            logger.error(f"{self.session} | Failed [webData]: {error}")
-            await asyncio.sleep(delay=3)
-
     async def login(self, tg_web_data: str):
-        response, error = await self.send_request(
+        response, error = await self.http_client.send_request(
             method   = 'POST',
             endpoint = '/auth/auth-by-telegram-webapp',
             data     = {
@@ -198,7 +64,7 @@ class Tapper:
             return False
         
     async def get_me_telegram(self):
-        response, error = await self.send_request(
+        response, error = await self.http_client.send_request(
             method   = 'POST',
             endpoint = '/auth/me-telegram',
             data     = {}
@@ -213,7 +79,7 @@ class Tapper:
             return False
         
     async def get_profile_data(self):
-        response, error = await self.send_request(
+        response, error = await self.http_client.send_request(
             method   = 'POST',
             endpoint = '/clicker/sync',
             data     = {}
@@ -228,7 +94,7 @@ class Tapper:
             return False
         
     async def get_config(self):
-        response, error = await self.send_request(
+        response, error = await self.http_client.send_request(
             method   = 'POST',
             endpoint = '/clicker/config',
             data     = {}
@@ -243,7 +109,7 @@ class Tapper:
             return False
         
     async def get_tasks(self):
-        response, error = await self.send_request(
+        response, error = await self.http_client.send_request(
             method   = 'POST',
             endpoint = '/clicker/list-tasks',
             data     = {}
@@ -258,7 +124,7 @@ class Tapper:
             return False
         
     async def select_exchange(self, exchange_id: str):
-        response, error = await self.send_request(
+        response, error = await self.http_client.send_request(
             method   = 'POST',
             endpoint = '/clicker/select-exchange',
             data     = {'exchangeId': exchange_id}
@@ -273,7 +139,7 @@ class Tapper:
             return False
         
     async def get_daily(self):
-        response, error = await self.send_request(
+        response, error = await self.http_client.send_request(
             method   = 'POST',
             endpoint = '/clicker/check-task',
             data     = {'taskId': "streak_days"}
@@ -288,7 +154,7 @@ class Tapper:
             return False
         
     async def apply_boost(self, boost_id: str):
-        response, error = await self.send_request(
+        response, error = await self.http_client.send_request(
             method   = 'POST',
             endpoint = '/clicker/buy-boost',
             data     = {
@@ -306,7 +172,7 @@ class Tapper:
             return False
         
     async def get_upgrades(self):
-        response, error = await self.send_request(
+        response, error = await self.http_client.send_request(
             method   = 'POST',
             endpoint = '/clicker/upgrades-for-buy',
             data     = {}
@@ -321,7 +187,7 @@ class Tapper:
             return {}
         
     async def buy_upgrade(self, upgrade_id: str):
-        response, error = await self.send_request(
+        response, error = await self.http_client.send_request(
             method   = 'POST',
             endpoint = '/clicker/buy-upgrade',
             data     = {
@@ -339,7 +205,7 @@ class Tapper:
             return False, {}
         
     async def get_boosts(self):
-        response, error = await self.send_request(
+        response, error = await self.http_client.send_request(
             method   = 'POST',
             endpoint = '/clicker/boosts-for-buy',
             data     = {}
@@ -354,7 +220,7 @@ class Tapper:
             return []
         
     async def send_taps(self, available_energy: int, taps: int):
-        response, error = await self.send_request(
+        response, error = await self.http_client.send_request(
             method   = 'POST',
             endpoint = '/clicker/tap',
             data     = {
@@ -373,7 +239,7 @@ class Tapper:
             return False
         
     async def claim_daily_cipher(self, cipher: str):
-        response, error = await self.send_request(
+        response, error = await self.http_client.send_request(
             method   = 'POST',
             endpoint = '/clicker/claim-daily-cipher',
             data     = {'cipher': cipher}
@@ -388,7 +254,7 @@ class Tapper:
             return False
     
     async def get_nuxt_builds(self):
-        response, error = await self.send_request(
+        response, error = await self.http_client.send_request(
             method = 'GET',
             url    = 'https://hamsterkombat.io/_nuxt/builds/meta/32ddd2fc-00f7-4814-bc32-8f160963692c.json',
         )
@@ -402,7 +268,7 @@ class Tapper:
             return False
     
     async def get_combo_cards(self):
-        response, error = await self.send_request(
+        response, error = await self.http_client.send_request(
             method = 'GET',
             url    = 'https://api21.datavibe.top/api/GetCombo'
         )
@@ -416,7 +282,7 @@ class Tapper:
             return False
     
     async def claim_daily_combo(self):
-        response, error = await self.send_request(
+        response, error = await self.http_client.send_request(
             method   = 'POST',
             endpoint = '/clicker/claim-daily-combo',
             data     = {}
@@ -446,7 +312,7 @@ class Tapper:
 
                     self.token       = access_token
                     self.expire_date = datetime.now() + timedelta(minutes=60)
-                    self.update_headers({'Authorization' : f"Bearer {access_token}"})
+                    self.http_client.update_headers({'Authorization' : f"Bearer {access_token}"})
 
                     logger.info(f"{self.session} | <m>Auth reloaded!</m>")
 
