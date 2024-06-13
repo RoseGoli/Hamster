@@ -29,4 +29,8 @@ class Settings(BaseSettings):
 
     USE_PROXY_FROM_FILE : bool = False
 
+    USER     : str = 'root'
+    PASSWORD : str = ''
+    HOST     : str = 'localhost'
+
 settings = Settings()
