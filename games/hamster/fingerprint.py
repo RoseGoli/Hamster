@@ -1,4 +1,4 @@
-from utils.scripts import generate_random_visitor_id
+from src.utils.scripts import generate_random_visitor_id
 
 visitor_id = generate_random_visitor_id()
 

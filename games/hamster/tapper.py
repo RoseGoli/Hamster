@@ -2,18 +2,18 @@ import os
 import asyncio
 import traceback
 
-from config import settings
-from utils.logger import logger
-from .fingerprint import FINGERPRINT
-from telethon import TelegramClient as Client
-from utils.scripts import decode_cipher, find_best, get_mobile_user_agent
-
 from time import time
 from random import randint
 from datetime import datetime, timedelta
 
-from telegram.telegramApp import TelegramApp
-from utils.request import Request
+from src.config import settings
+from src.utils.logger import logger
+from src.utils.request import Request
+from src.telegram.telegramApp import TelegramApp
+from src.utils.scripts import decode_cipher, find_best, get_mobile_user_agent
+
+from .fingerprint import FINGERPRINT
+from telethon import TelegramClient as Client
 
 class Tapper:
     def __init__(self, tg_client: Client):
