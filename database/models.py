@@ -22,8 +22,9 @@ class users(BaseModel):
 class accounts(BaseModel):
     phone_number = BigIntegerField(primary_key=True)
     user_id      = BigIntegerField()
-    login_at     = TimestampField()
-    settings     = CharField()
+    name         = CharField(max_length=100)
+    username     = CharField(max_length=100)
+    last_login   = IntegerField(default=0)
     balance      = IntegerField(default=0)
     profit       = IntegerField(default=0)
     last_check   = IntegerField(default=0)
