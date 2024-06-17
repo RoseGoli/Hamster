@@ -2,6 +2,7 @@ import asyncio
 import traceback
 
 from time import time
+from src.config import settings
 from src.database.acc import acc
 from .telegramApp import TelegramApp
 from src.utils.scripts import getSessions
@@ -10,7 +11,7 @@ async def handleSession(session, bot: str, url: str, start_param: str = None):
     try:
         search = acc.fetch(session)
 
-        if time() - getattr(search, 'last_login', 0) >= 3600:
+        if time() - getattr(search, 'last_login', 0) >= settings.RENEW_AUTH:
             app = TelegramApp(session)
             await app.connect()
 

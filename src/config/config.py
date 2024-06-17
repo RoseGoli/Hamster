@@ -34,4 +34,6 @@ class Settings(BaseSettings):
     PASSWORD : str = ''
     HOST     : str = 'localhost'
 
+    RENEW_AUTH : int = 3600
+
 settings = Settings()
