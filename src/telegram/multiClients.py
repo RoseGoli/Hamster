@@ -1,5 +1,4 @@
 import asyncio
-import traceback
 
 from time import time
 from src.config import settings
