@@ -6,9 +6,6 @@ import traceback
 from config import settings
 from telegram.client import getClient, startClient
 
-if not os.path.exists(settings.SESSION_PATH):
-    os.mkdir(settings.SESSION_PATH)
-
 try:
     import plugins as plugins
 except ImportError:

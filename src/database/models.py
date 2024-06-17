@@ -1,5 +1,5 @@
 from peewee import *
-from config import settings
+from src.config import settings
 
 mysqlDb = MySQLDatabase(
     'Manager',
@@ -20,14 +20,15 @@ class users(BaseModel):
 
 
 class accounts(BaseModel):
-    phone_number = BigIntegerField(primary_key=True)
-    user_id      = BigIntegerField()
+    user_id      = BigIntegerField(primary_key=True)
     name         = CharField(max_length=100)
     username     = CharField(max_length=100)
+    url          = CharField(max_length=1000)
     last_login   = IntegerField(default=0)
     balance      = IntegerField(default=0)
     profit       = IntegerField(default=0)
     last_check   = IntegerField(default=0)
+    session_file = CharField(max_length=100)
 
 mysqlDb.connect()
 mysqlDb.create_tables([users, accounts])

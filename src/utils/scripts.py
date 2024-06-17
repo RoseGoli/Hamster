@@ -5,7 +5,7 @@ import string
 import base64
 import hashlib
 
-from config import settings
+from src.config import settings
 from urllib.parse import unquote
 from fake_useragent import UserAgent
 

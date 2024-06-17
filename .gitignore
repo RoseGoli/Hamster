@@ -2,3 +2,4 @@
 .vscode/*
 bot.*
 .env
+*/bad_sessions/*
