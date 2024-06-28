@@ -1,5 +1,5 @@
-*/sessions/*
+sessions/*
 .vscode/*
-bot.*
 .env
-*/bad_sessions/*
+bad_sessions/*
+test*
