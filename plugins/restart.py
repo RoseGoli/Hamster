@@ -2,11 +2,12 @@ import os
 import sys
 
 from telethon import events
+from src.config import settings
 
 MAGIC_FILE = os.path.join(os.path.dirname(__file__), 'self-update.lock')
 
 async def init(bot):
-    @bot.on(events.NewMessage(pattern='^[\/\#\!\.](restart|relaod)$', from_users=1692387237))
+    @bot.on(events.NewMessage(pattern='^[\/\#\!\.](restart|relaod)$', from_users=settings.OWNERS))
     async def handler(event):
         await event.delete()
         m = await event.respond('<b>Checking for plugin updates…</b>')

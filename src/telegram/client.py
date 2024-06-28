@@ -1,5 +1,5 @@
 import os
-from config import settings
+from src.config import settings
 from telethon import TelegramClient
 
 bot = TelegramClient(

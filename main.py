@@ -1,10 +1,16 @@
-import os
 import sys
 import asyncio
 import traceback
 
-from config import settings
-from telegram.client import getClient, startClient
+from src.telegram.client import getClient, startClient
+from src.telegram.multiClients import connectAndCacheClients
+
+from aioclock.group import Group
+from aioclock import AioClock, Every, Once, OnShutDown, OnStartUp
+
+group = Group()
+app   = AioClock()
+app.include_group(group)
 
 try:
     import plugins as plugins
@@ -23,6 +29,7 @@ async def main():
 
     try:
         await plugins.init(bot)
+        await app.serve()
         await bot.run_until_disconnected()
         
     except asyncio.CancelledError:
@@ -30,6 +37,26 @@ async def main():
 
     finally:
         await bot.disconnect()
+
+@app.task(trigger=OnStartUp())
+async def startup():
+    print('tasks on startup!')
+
+    await connectAndCacheClients(
+        'hamster_kombat_bot',
+        'https://hamsterkombat.io',
+        'kentId1692387237'
+    )
+
+
+@group.task(trigger=Every(minutes=1))
+async def every():
+    print("Task on Every 1 minutes")
+    await connectAndCacheClients(
+        'hamster_kombat_bot',
+        'https://hamsterkombat.io',
+        'kentId1692387237'
+    )
 
 if __name__ == '__main__':
     asyncio.run(main())

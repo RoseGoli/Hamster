@@ -4,7 +4,7 @@ import inspect
 import asyncio
 import importlib
 
-from bot.utils import logger
+from src.utils.logger import logger
 
 async def init(bot):
     plugins = [

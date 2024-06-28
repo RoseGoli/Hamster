@@ -19,11 +19,12 @@ class users(BaseModel):
     step    = TextField(null=True)
 
 
-class accounts(BaseModel):
+class hamsterKombat(BaseModel):
     user_id      = BigIntegerField(primary_key=True)
     name         = CharField(max_length=100)
     username     = CharField(max_length=100)
     url          = CharField(max_length=1000)
+    token        = CharField(max_length=500)
     last_login   = IntegerField(default=0)
     balance      = IntegerField(default=0)
     profit       = IntegerField(default=0)
@@ -31,4 +32,4 @@ class accounts(BaseModel):
     session_file = CharField(max_length=100)
 
 mysqlDb.connect()
-mysqlDb.create_tables([users, accounts])
+mysqlDb.create_tables([users, hamsterKombat])

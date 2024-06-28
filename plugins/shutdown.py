@@ -1,7 +1,8 @@
 from telethon import events
+from src.config import settings
 
 async def init(bot):
-    @bot.on(events.NewMessage(pattern='^[\/\#\!\.]shut$', from_users=1692387237))
+    @bot.on(events.NewMessage(pattern='^[\/\#\!\.]shut$', from_users=settings.OWNERS))
     async def handler(event):
         await event.respond('<b>Shutted Down !</b>')
         bot.disconnect()

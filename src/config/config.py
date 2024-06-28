@@ -27,6 +27,7 @@ class Settings(BaseSettings):
 
     RANDOM_TAPS_COUNT   : list[int] = [10, 50]
     SLEEP_BETWEEN_TAP   : list[int] = [10, 25]
+    OWNERS              : list[int]
 
     USE_PROXY_FROM_FILE : bool = False
 

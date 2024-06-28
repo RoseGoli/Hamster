@@ -1,4 +1,3 @@
-import os
 import asyncio
 import traceback
 
@@ -7,21 +6,17 @@ from random import randint
 from datetime import datetime, timedelta
 
 from src.config import settings
+from src.database.hamster import hamster
 from src.utils.logger import logger
+from .fingerprint import FINGERPRINT
 from src.utils.request import Request
-from src.telegram.telegramApp import TelegramApp
+from src.utils.scripts import parse_webapp_url
 from src.utils.scripts import decode_cipher, find_best, get_mobile_user_agent
 
-from .fingerprint import FINGERPRINT
-from telethon import TelegramClient as Client
-
 class Tapper:
-    def __init__(self, tg_client: Client):
+    def __init__(self, session):
         self.token       = None
-        self.expire_date = datetime.now()
-
-        self.client      = TelegramApp(tg_client)
-        self.session     = os.path.basename(tg_client.session.filename)
+        self.session     = session
 
         self.http_client = Request(
             base_url     = 'https://api.hamsterkombat.io',
@@ -41,6 +36,11 @@ class Tapper:
                 "User-Agent"         : get_mobile_user_agent(),
             }
         )
+        self.me    = hamster.fetch(self.session)
+        self.token = getattr(self.me, 'token', False)
+        
+        if self.token:
+            self.http_client.update_headers({'Authorization' : f"Bearer {self.token}"})
     
     async def login(self, tg_web_data: str):
         response, error = await self.http_client.send_request(
@@ -296,163 +296,229 @@ class Tapper:
             )
             return False
     
-    async def run(self):
-        tg_web_data = await self.get_web_data()
+    async def daily_events(self):
+        logger.info(f"{self.session} | <m>doing daily events!</m>")
 
-        while True:
-            try:
-                if datetime.now() > self.expire_date:
-                    await self.get_nuxt_builds()
+        await self.get_nuxt_builds()
+        await self.get_me_telegram()
 
-                    access_token = await self.login(tg_web_data=tg_web_data)
+        game_config  = await self.get_config()
+        profile_data = await self.get_profile_data()
 
-                    if not access_token:
-                        await asyncio.sleep(delay=60)
-                        continue
+        if not profile_data:
+            return False
 
-                    self.token       = access_token
-                    self.expire_date = datetime.now() + timedelta(minutes=60)
-                    self.http_client.update_headers({'Authorization' : f"Bearer {access_token}"})
+        balance           = int(profile_data.get('balanceCoins', 0))
+        last_passive_earn = int(profile_data.get('lastPassiveEarn', 0))
+        earn_on_hour      = int(profile_data.get('earnPassivePerHour', 0))
 
-                    logger.info(f"{self.session} | <m>Auth reloaded!</m>")
+        logger.info(
+            f"{self.session} | Last passive earn: <g>+{last_passive_earn:,}</g> | "
+            f"Earn every hour: <y>{earn_on_hour:,}</y>"
+        )
 
-                    await self.get_me_telegram()
+        hamster.insertOrUpdateHamster(user_id = self.me.user_id, balance=balance, profit=earn_on_hour)
 
-                    game_config  = await self.get_config()
-                    profile_data = await self.get_profile_data()
+        upgrades_data = await self.get_upgrades()
 
-                    if not profile_data:
-                        continue
+        if upgrades_data:
+            upgrades    = upgrades_data['upgradesForBuy']
+            daily_combo = upgrades_data.get('dailyCombo', 0)
 
-                    balance           = int(profile_data.get('balanceCoins', 0))
-                    last_passive_earn = int(profile_data.get('lastPassiveEarn', 0))
-                    earn_on_hour      = int(profile_data.get('earnPassivePerHour', 0))
+            if daily_combo:
+                bonus      = daily_combo['bonusCoins']
+                is_claimed = daily_combo['isClaimed']
 
-                    logger.info(
-                        f"{self.session} | Last passive earn: <g>+{last_passive_earn:,}</g> | "
-                        f"Earn every hour: <y>{earn_on_hour:,}</y>"
-                    )
+                if not is_claimed:
+                    combo_cards = await self.get_combo_cards()
+                    cards       = combo_cards['combo']
+                    date        = combo_cards['date']
 
-                    upgrades_data = await self.get_upgrades()
+                    available_combo_cards = [
+                        data for data in upgrades
+                        if data['isAvailable'] is True
+                        and data['id'] in cards
+                        and data['id'] not in daily_combo['upgradeIds']
+                        and data['isExpired'] is False
+                        and data.get('cooldownSeconds', 0) == 0
+                        and data.get('maxLevel', data['level']) >= data['level']
+                        and (data.get('condition') is None
+                                or data['condition'].get('_type') != 'SubscribeTelegramChannel')
+                    ]
 
-                    if upgrades_data:
-                        upgrades    = upgrades_data['upgradesForBuy']
-                        daily_combo = upgrades_data.get('dailyCombo', 0)
+                    if date == datetime.now().strftime("%d-%m-%y"):
+                        common_price = sum([upgrade['price'] for upgrade in available_combo_cards])
 
-                        if daily_combo:
-                            bonus      = daily_combo['bonusCoins']
-                            is_claimed = daily_combo['isClaimed']
+                        logger.info(
+                            f"{self.session} | "
+                            f"Found <m>{len(available_combo_cards)}</m> combo cards to get!"
+                        )
 
-                            if not is_claimed:
-                                combo_cards = await self.get_combo_cards()
-                                cards       = combo_cards['combo']
-                                date        = combo_cards['date']
+                        if common_price < bonus and balance > common_price:
+                            for upgrade in available_combo_cards:
+                                upgrade_id = upgrade['id']
+                                level      = upgrade['level']
+                                price      = upgrade['price']
+                                profit     = upgrade['profitPerHourDelta']
 
-                                available_combo_cards = [
-                                    data for data in upgrades
-                                    if data['isAvailable'] is True
-                                    and data['id'] in cards
-                                    and data['id'] not in daily_combo['upgradeIds']
-                                    and data['isExpired'] is False
-                                    and data.get('cooldownSeconds', 0) == 0
-                                    and data.get('maxLevel', data['level']) >= data['level']
-                                    and (data.get('condition') is None
-                                            or data['condition'].get('_type') != 'SubscribeTelegramChannel')
-                                ]
+                                logger.info(
+                                    f"{self.session} | "
+                                    f"Sleep 5s before upgrade <r>combo</r> card <e>{upgrade_id}</e>"
+                                )
 
-                                if date == datetime.now().strftime("%d-%m-%y"):
-                                    common_price = sum([upgrade['price'] for upgrade in available_combo_cards])
+                                await asyncio.sleep(delay=5)
 
-                                    logger.info(
+                                status, upgrades = await self.buy_upgrade(
+                                    upgrade_id   = upgrade_id
+                                )
+
+                                if status is True:
+                                    earn_on_hour += profit
+                                    balance      -= price
+
+                                    logger.success(
                                         f"{self.session} | "
-                                        f"Found <m>{len(available_combo_cards)}</m> combo cards to get!"
+                                        f"Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | "
+                                        f"Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit:,}</g>) | "
+                                        f"Money left: <e>{balance:,}</e>"
                                     )
+                                    await asyncio.sleep(delay=1)
 
-                                    if common_price < bonus and balance > common_price:
-                                        for upgrade in available_combo_cards:
-                                            upgrade_id = upgrade['id']
-                                            level      = upgrade['level']
-                                            price      = upgrade['price']
-                                            profit     = upgrade['profitPerHourDelta']
+                            await asyncio.sleep(delay=2)
 
-                                            logger.info(
-                                                f"{self.session} | "
-                                                f"Sleep 5s before upgrade <r>combo</r> card <e>{upgrade_id}</e>"
-                                            )
-
-                                            await asyncio.sleep(delay=5)
-
-                                            status, upgrades = await self.buy_upgrade(
-                                                upgrade_id   = upgrade_id
-                                            )
-
-                                            if status is True:
-                                                earn_on_hour += profit
-                                                balance      -= price
-
-                                                logger.success(
-                                                    f"{self.session} | "
-                                                    f"Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | "
-                                                    f"Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit:,}</g>) | "
-                                                    f"Money left: <e>{balance:,}</e>"
-                                                )
-                                                await asyncio.sleep(delay=1)
-
-                                        await asyncio.sleep(delay=2)
-
-                                        status = await self.claim_daily_combo()
-
-                                        if status is True:
-                                            logger.success(
-                                                f"{self.session} | Successfully claimed daily combo | "
-                                                f"Bonus: <g>+{bonus:,}</g>"
-                                            )
-
-
-                    tasks        = await self.get_tasks()
-                    daily_task   = tasks[-1]
-                    rewards      = daily_task['rewardsByDays']
-                    is_completed = daily_task['isCompleted']
-                    days         = daily_task['days']
-                    daily_cipher = game_config.get('dailyCipher', False)
-
-                    await asyncio.sleep(delay=2)
-
-                    if is_completed is False:
-                        status = await self.get_daily()
-                        if status is True:
-                            logger.success(
-                                f"{self.session} | Successfully get daily reward | "
-                                f"Days: <m>{days}</m> | Reward coins: {rewards[days - 1]['rewardCoins']}"
-                            )
-
-                    await asyncio.sleep(delay=2)
-                    
-                    if daily_cipher:
-                        cipher     = daily_cipher['cipher']
-                        bonus      = daily_cipher['bonusCoins']
-                        is_claimed = daily_cipher['isClaimed']
-
-                        if not is_claimed and cipher:
-                            decoded_cipher = decode_cipher(cipher=cipher)
-                            status         = await self.claim_daily_cipher(cipher=decoded_cipher)
+                            status = await self.claim_daily_combo()
 
                             if status is True:
                                 logger.success(
-                                    f"{self.session} | "
-                                    f"Successfully claim daily cipher: <y>{decoded_cipher}</y> | "
+                                    f"{self.session} | Successfully claimed daily combo | "
                                     f"Bonus: <g>+{bonus:,}</g>"
                                 )
-                        
-                        await asyncio.sleep(delay=2)
-                    
-                    exchange_id = profile_data.get('exchangeId')
-                    if not exchange_id:
-                        status = await self.select_exchange(exchange_id="bybit")
-                        if status is True:
-                            logger.success(f"{self.session} | Successfully selected exchange <y>Bybit</y>")
 
+        tasks        = await self.get_tasks()
+        daily_task   = tasks[-1]
+        rewards      = daily_task['rewardsByDays']
+        is_completed = daily_task['isCompleted']
+        days         = daily_task['days']
+        daily_cipher = game_config.get('dailyCipher', False)
+
+        await asyncio.sleep(delay=2)
+
+        if is_completed is False:
+            status = await self.get_daily()
+            if status is True:
+                logger.success(
+                    f"{self.session} | Successfully get daily reward | "
+                    f"Days: <m>{days}</m> | Reward coins: {rewards[days - 1]['rewardCoins']}"
+                )
+
+        await asyncio.sleep(delay=2)
+        
+        if daily_cipher:
+            cipher     = daily_cipher['cipher']
+            bonus      = daily_cipher['bonusCoins']
+            is_claimed = daily_cipher['isClaimed']
+
+            if not is_claimed and cipher:
+                decoded_cipher = decode_cipher(cipher=cipher)
+                status         = await self.claim_daily_cipher(cipher=decoded_cipher)
+
+                if status is True:
+                    logger.success(
+                        f"{self.session} | "
+                        f"Successfully claim daily cipher: <y>{decoded_cipher}</y> | "
+                        f"Bonus: <g>+{bonus:,}</g>"
+                    )
+            
+            await asyncio.sleep(delay=2)
+        
+        exchange_id = profile_data.get('exchangeId')
+        if not exchange_id:
+            status = await self.select_exchange(exchange_id="bybit")
+            if status is True:
+                logger.success(f"{self.session} | Successfully selected exchange <y>Bybit</y>")
+
+    async def auto_upgrade(self, balance, earn_on_hour):
+        if settings.AUTO_UPGRADE is True:
+            upgrades = await self.get_upgrades()
+            for _ in range(settings.UPGRADES_COUNT):
+                if isinstance(upgrades, dict):
+                    upgrades = upgrades.get('upgradesForBuy', [])
+                elif isinstance(upgrades, list):
+                    pass
+                else:
+                    upgrades = []
                 
+                available_upgrades = [
+                    data for data in upgrades
+                    if data['isAvailable'] is True
+                        and data['isExpired'] is False
+                        and data.get('cooldownSeconds', 0) == 0
+                        and data.get('maxLevel', data['level']) >= data['level']
+                    and (
+                        data.get('condition') is None
+                        or data['condition'].get('_type') != 'SubscribeTelegramChannel'
+                    )
+                ]
+
+                free_money = balance - settings.BALANCE_TO_SAVE
+                queue      = find_best(free_money, available_upgrades)
+
+                if not queue:
+                    continue
+                
+                upgrade    = queue[0]
+                upgrade_id = upgrade['id']
+                level      = upgrade['level']
+                price      = upgrade['price']
+                profit     = upgrade['profit']
+
+                logger.info(f"{self.session} | Sleep 5s before upgrade <e>{upgrade_id}</e>")
+                await asyncio.sleep(delay=5)
+
+                status, upgrades = await self.buy_upgrade(
+                    upgrade_id   = upgrade_id
+                )
+
+                if status is True:
+                    earn_on_hour += profit
+                    balance      -= price
+
+                    logger.success(
+                        f"{self.session} | "
+                        f"Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | "
+                        f"Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit:,}</g>) | "
+                        f"Money left: <e>{balance:,}</e>"
+                    )
+
+                    hamster.insertOrUpdateHamster(user_id = self.me.user_id, balance=balance, profit=earn_on_hour)
+
+                    await asyncio.sleep(delay=1)
+                    continue
+                
+    async def auto_apply_boosts(self, available_energy):
+        if available_energy < settings.MIN_AVAILABLE_ENERGY:
+            boosts       = await self.get_boosts()
+            energy_boost = next((boost for boost in boosts if boost['id'] == 'BoostFullAvailableTaps'), {})
+
+            if (
+                settings.APPLY_DAILY_ENERGY is True
+                and energy_boost.get("cooldownSeconds", 0) == 0
+                and energy_boost.get("level", 0) <= energy_boost.get("maxLevel", 0)
+            ):
+                logger.info(f"{self.session} | Sleep 5s before apply energy boost")
+                await asyncio.sleep(delay=5)
+
+                status = await self.apply_boost(boost_id="BoostFullAvailableTaps")
+
+                if status is True:
+                    logger.success(f"{self.session} | Successfully apply energy boost")
+                    await asyncio.sleep(delay=1)
+                    return True
+        return False
+    
+    async def run(self):
+        while True:
+            try:
                 logger.info(f"{self.session} | account fully loaded! | <m>start working...</m>")
                 taps = randint(a=settings.RANDOM_TAPS_COUNT[0], b=settings.RANDOM_TAPS_COUNT[1])
 
@@ -483,92 +549,21 @@ class Tapper:
                     f"Balance: <c>{balance:,}</c> (<g>+{calc_taps:,}</g>) | Total: <e>{total:,}</e>"
                 )
 
-                if settings.AUTO_UPGRADE is True:
-                    upgrades = await self.get_upgrades()
-                    for _ in range(settings.UPGRADES_COUNT):
-                        if isinstance(upgrades, dict):
-                            upgrades = upgrades.get('upgradesForBuy', [])
-                        elif isinstance(upgrades, list):
-                            pass
-                        else:
-                            upgrades = []
-                        
-                        available_upgrades = [
-                            data for data in upgrades
-                            if data['isAvailable'] is True
-                                and data['isExpired'] is False
-                                and data.get('cooldownSeconds', 0) == 0
-                                and data.get('maxLevel', data['level']) >= data['level']
-                            and (
-                                data.get('condition') is None
-                                or data['condition'].get('_type') != 'SubscribeTelegramChannel'
-                            )
-                        ]
+                hamster.insertOrUpdateHamster(user_id = self.me.user_id, balance=balance)
+                self.auto_upgrade(self, balance, earn_on_hour)
+                is_boost = self.auto_apply_boosts(available_energy)
 
-                        free_money = balance - settings.BALANCE_TO_SAVE
-                        queue      = find_best(free_money, available_upgrades)
+                if is_boost:
+                    continue
 
-                        if not queue:
-                            continue
-                        
-                        upgrade    = queue[0]
-                        upgrade_id = upgrade['id']
-                        level      = upgrade['level']
-                        price      = upgrade['price']
-                        profit     = upgrade['profit']
-
-                        logger.info(f"{self.session} | Sleep 5s before upgrade <e>{upgrade_id}</e>")
-                        await asyncio.sleep(delay=5)
-
-                        status, upgrades = await self.buy_upgrade(
-                            upgrade_id   = upgrade_id
-                        )
-
-                        if status is True:
-                            earn_on_hour += profit
-                            balance      -= price
-
-                            logger.success(
-                                f"{self.session} | "
-                                f"Successfully upgraded <e>{upgrade_id}</e> with price <r>{price:,}</r> to <m>{level}</m> lvl | "
-                                f"Earn every hour: <y>{earn_on_hour:,}</y> (<g>+{profit:,}</g>) | "
-                                f"Money left: <e>{balance:,}</e>"
-                            )
-
-                            await asyncio.sleep(delay=1)
-                            continue
-                
-                if available_energy < settings.MIN_AVAILABLE_ENERGY:
-                    boosts       = await self.get_boosts()
-                    energy_boost = next((boost for boost in boosts if boost['id'] == 'BoostFullAvailableTaps'), {})
-
-                    if (
-                        settings.APPLY_DAILY_ENERGY is True
-                        and energy_boost.get("cooldownSeconds", 0) == 0
-                        and energy_boost.get("level", 0) <= energy_boost.get("maxLevel", 0)
-                    ):
-                        logger.info(f"{self.session} | Sleep 5s before apply energy boost")
-                        await asyncio.sleep(delay=5)
-
-                        status = await self.apply_boost(boost_id="BoostFullAvailableTaps")
-
-                        if status is True:
-                            logger.success(f"{self.session} | Successfully apply energy boost")
-                            await asyncio.sleep(delay=1)
-                            continue
-
-                    random_sleep = randint(settings.SLEEP_BY_MIN_ENERGY[0], settings.SLEEP_BY_MIN_ENERGY[1])
-
-                    logger.info(f"{self.session} | Minimum energy reached: {available_energy}")
-                    logger.info(f"{self.session} | Sleep {random_sleep:,}s")
-
-                    await asyncio.sleep(delay=random_sleep)
-                    #self.expire_date = datetime.now()
+                random_sleep = randint(settings.SLEEP_BY_MIN_ENERGY[0], settings.SLEEP_BY_MIN_ENERGY[1])
+                logger.info(f"{self.session} | Minimum energy reached: {available_energy}")
+                logger.info(f"{self.session} | Sleep {random_sleep:,}s")
+                await asyncio.sleep(delay=random_sleep)
 
             except Exception as error:
                 print(traceback.format_exc())
                 logger.error(f"{self.session} | Unknown error: {error}")
-                await asyncio.sleep(delay=3)
 
             else:
                 sleep_clicks = randint(a=settings.SLEEP_BETWEEN_TAP[0], b=settings.SLEEP_BETWEEN_TAP[1])
