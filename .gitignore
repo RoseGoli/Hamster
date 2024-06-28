@@ -1,6 +1,6 @@
-sessions/
-.vscode/
+sessions/*
+.vscode/*
 .env
-bad_sessions/
+bad_sessions/*
 test*
-__pycache__/
+*/__pycache__/*
