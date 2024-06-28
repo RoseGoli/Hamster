@@ -314,6 +314,7 @@ class Tapper:
 
         logger.info(
             f"{self.session} | Last passive earn: <g>+{last_passive_earn:,}</g> | "
+            f"balance coins : <g>{balance}</g> | "
             f"Earn every hour: <y>{earn_on_hour:,}</y>"
         )
 
