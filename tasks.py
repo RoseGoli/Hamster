@@ -1,5 +1,5 @@
 from aioclock.group import Group
-from aioclock import AioClock, Every, Once, OnShutDown, OnStartUp
+from aioclock import AioClock, Every, OnStartUp
 
 from games.hamster.tapper import Tapper
 from src.utils.scripts import getSessions

@@ -27,7 +27,7 @@ async def handleSession(session, bot: str, url: str, start_param: str = None):
                     raw_url     = True
                 )
 
-                user = acc.insertOrUpdateHamster(
+                acc.insertOrUpdateHamster(
                     user_id      = info.id,
                     name         = ' '.join(filter(None, [info.first_name, info.last_name])),
                     username     = info.username,
