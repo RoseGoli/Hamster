@@ -22,7 +22,7 @@ async def main():
 
     try:
         await plugins.init(bot)
-        #await app.serve()
+        await app.serve()
         await bot.run_until_disconnected()
         
     except asyncio.CancelledError:

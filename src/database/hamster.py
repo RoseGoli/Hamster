@@ -2,13 +2,10 @@ from .models import hamsterKombat
 from peewee import DoesNotExist
 
 class hamster:
-    def fetch(value: str|int):
+    def fetch(user_id: str|int):
         try:
-            if isinstance(value, int):
-                find = hamsterKombat.select().where(hamsterKombat.user_id == value).dicts().get()
-            elif isinstance(value, str):
-                find = hamsterKombat.select().where(hamsterKombat.session_file == value).dicts().get()
-        except Exception as e:
+            find = hamsterKombat.select().where(hamsterKombat.user_id == user_id).dicts().get()
+        except DoesNotExist:
             find = {}
         
         return find

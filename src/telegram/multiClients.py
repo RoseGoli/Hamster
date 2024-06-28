@@ -3,6 +3,7 @@ import traceback
 
 from time import time
 from src.config import settings
+from src.database.acc import acc, accounts
 from src.database.hamster import hamster
 from .telegramApp import TelegramApp
 from src.utils.scripts import getSessions
@@ -12,8 +13,8 @@ from src.utils.scripts import parse_webapp_url
 async def handleSession(session, bot: str, url: str, start_param: str = None):
     try:
         if bot == 'hamster_kombat_bot':
-            search = hamster.fetch(str(session))
-            
+            search = acc.fetch(str(session))
+
             if time() - search.get('last_login', 0) >= settings.RENEW_AUTH:
                 app = TelegramApp(session)
                 await app.connect()
@@ -26,15 +27,19 @@ async def handleSession(session, bot: str, url: str, start_param: str = None):
                     raw_url     = True
                 )
 
+                user = acc.insertOrUpdateHamster(
+                    user_id      = info.id,
+                    name         = ' '.join(filter(None, [info.first_name, info.last_name])),
+                    username     = info.username,
+                    phone_number = info.phone,
+                    session_file = session
+                )
+
                 if url:
                     hamster.insertOrUpdateHamster(
                         user_id      = info.id,
-                        name         = ' '.join(filter(None, [info.first_name, info.last_name])),
-                        username     = info.username,
                         url          = url,
-                        last_login   = time(),
-                        session_file = session
-                        
+                        last_login   = time()
                     )
                 
                 hamster_client = Tapper(session)

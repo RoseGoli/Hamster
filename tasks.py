@@ -19,7 +19,6 @@ async def startup():
         'kentId1692387237'
     )
 
-
 @group.task(trigger=Every(minutes=60))
 async def every():
     print("Cache on Every 60 minutes")
