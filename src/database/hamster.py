@@ -5,9 +5,9 @@ class hamster:
     def fetch(value: str|int):
         try:
             if isinstance(value, int):
-                find = hamsterKombat.get(hamsterKombat.user_id == value)
+                find = hamsterKombat.select().where(hamsterKombat.user_id == value).dicts().get()
             elif isinstance(value, str):
-                find = hamsterKombat.get(hamsterKombat.session_file == value)
+                find = hamsterKombat.select().where(hamsterKombat.session_file == value).dicts().get()
         except Exception as e:
             find = {}
         

@@ -5,6 +5,7 @@ import string
 import base64
 import hashlib
 
+from itertools import islice
 from src.config import settings
 from urllib.parse import unquote
 from fake_useragent import UserAgent
@@ -88,3 +89,7 @@ def getSessions():
             r = file.replace('.session', '')
             if r != settings.MAIN_NAME:
                 yield r
+
+def chunk(arr_range, arr_size): 
+    arr_range = iter(arr_range) 
+    return iter(lambda: tuple(islice(arr_range, arr_size)), ())
