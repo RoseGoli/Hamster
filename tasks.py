@@ -1,6 +1,7 @@
 from aioclock.group import Group
 from aioclock import AioClock, Every, OnStartUp
 
+from src.config import settings
 from games.hamster.tapper import Tapper
 from src.utils.scripts import getSessions
 from src.telegram.multiClients import connectAndCacheClients
@@ -16,7 +17,7 @@ async def startup():
     await connectAndCacheClients(
         'hamster_kombat_bot',
         'https://hamsterkombat.io',
-        'kentId1692387237'
+        f"kentId{settings.OWNERS[0]}"
     )
 
 @group.task(trigger=Every(minutes=60))
@@ -25,7 +26,7 @@ async def every():
     await connectAndCacheClients(
         'hamster_kombat_bot',
         'https://hamsterkombat.io',
-        'kentId1692387237'
+        f"kentId{settings.OWNERS[0]}"
     )
 
 @group.task(trigger=Every(minutes=60))
