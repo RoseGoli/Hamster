@@ -32,7 +32,7 @@ async def main():
         print("KeyboardInterrupt received, shutting down...")
 
     except Exception as err:
-        print(f"An error occurred: {err}", exc_info=True)
+        print(f"An error occurred: {err}")
 
     finally:
         await bot.disconnect()
