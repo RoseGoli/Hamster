@@ -1,4 +1,4 @@
 import asyncio
-from telegram.registrator import register_sessions
+from src.telegram.registrator import register_sessions
 
 asyncio.run(register_sessions())
