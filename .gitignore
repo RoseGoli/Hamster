@@ -2,5 +2,5 @@ sessions/*
 .vscode/*
 .env
 bad_sessions/*
-test*
+test.py
 */__pycache__/*
