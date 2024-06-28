@@ -71,7 +71,7 @@ class TelegramClientManager:
             raise FileNotFoundError("No session files found")
         
         tg_clients = [
-            Client(session=f'sessions/{session_name}', api_id=self.api_id, api_hash=self.api_hash)
+            Client(session=f'sessions/{session_name}', api_id=self.api_id, api_hash=self.api_hash,proxy=("socks5", '127.0.0.1', 9050) if settings.USE_TOR_PROXY else None)
             for session_name in session_names
         ]
 

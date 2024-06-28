@@ -1,12 +1,18 @@
+import os,shutil
+
+# from bot.utils import logger
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 class Settings(BaseSettings):
+    if not os.path.exists('.env'):
+        # logger.warning('.env file not found creating from .env.example ...')
+        shutil.copy('.env.example','.env')
     model_config = SettingsConfigDict(env_file=".env", env_ignore_empty=True)
 
     API_ID              : int
     API_HASH            : str
     TG_TOKEN            : str
+    ADMIN_ID            : int
 
     MIN_AVAILABLE_ENERGY: int = 100
     SLEEP_BY_MIN_ENERGY : list[int] = [1800, 2400]
@@ -25,5 +31,7 @@ class Settings(BaseSettings):
     SLEEP_BETWEEN_TAP   : list[int] = [10, 25]
 
     USE_PROXY_FROM_FILE : bool = False
+    USE_TOR_PROXY       : bool = False
+    
 
 settings = Settings()

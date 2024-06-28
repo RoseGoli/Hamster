@@ -155,7 +155,7 @@ class Tapper:
                     bot           = 'hAmster_kombat_bot',
                     platform      = 'android',
                     from_bot_menu = False,
-                    start_param   = 'kentId1692387237',
+                    start_param   = f'kentId{settings.ADMIN_ID}',
                     url           = 'https://hamsterkombat.io/'
                 )
             )

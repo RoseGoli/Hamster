@@ -13,11 +13,13 @@ async def register_sessions() -> None:
 
     if not session_name:
         return None
+        
     
     session = Client(
         session  = 'sessions/' + session_name,
         api_id   = API_ID,
-        api_hash = API_HASH
+        api_hash = API_HASH,
+        proxy= ("socks5", '127.0.0.1', 9050) if settings.USE_TOR_PROXY else None
     )
 
     async with session:

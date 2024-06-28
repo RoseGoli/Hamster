@@ -1,9 +1,12 @@
 from bot.app import TaskRunner
 from telethon import events
+from bot.config import settings
+
 import numpy as np
 
+
 async def init(bot):
-    @bot.on(events.NewMessage(pattern='^[\/\#\!\.]urls$', from_users=1692387237))
+    @bot.on(events.NewMessage(pattern='^[\/\#\!\.]urls$', from_users=settings.ADMIN_ID))
     async def handler(event):
         await event.reply('Working on it...')
         tasks = TaskRunner()
