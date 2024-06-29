@@ -4,15 +4,12 @@ from aioclock.group import Group
 from aioclock import AioClock, Every, OnStartUp
 
 from src.config import settings
-from src.utils.task import TaskManager
 from games.hamster.tapper import Tapper
 from src.utils.scripts import getSessions
 from src.telegram.multiClients import connectAndCacheClients
 
-group   = Group()
-app     = AioClock()
-manager = TaskManager()
-
+group = Group()
+app   = AioClock()
 app.include_group(group)
 
 @app.task(trigger=OnStartUp())
