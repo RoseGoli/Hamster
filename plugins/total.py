@@ -1,7 +1,7 @@
 from telethon import events
 from src.config import settings
-from src.utils.helpers import rtl, align, format_large_num
 from src.database.hamster import hamster
+from src.utils.helpers import align, format_large_num
 
 async def init(bot):
     @bot.on(events.NewMessage(pattern='Total Coins 🗼', from_users=settings.OWNERS))
