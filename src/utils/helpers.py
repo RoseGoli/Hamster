@@ -1,3 +1,5 @@
+import psutil
+
 def align(args:dict, prefix:str='<code>', suffix:str='</code>', sep:str=' : ') -> str:
     [result, maxLength] = ['', 0]
 
@@ -39,3 +41,17 @@ def format_large_num(num):
     formatted_num = '{:.2f}'.format(abs_num).rstrip('0').rstrip('.')
 
     return '{}{}'.format(formatted_num, suffixes[magnitude])
+
+def get_server_usage():
+    memory      = psutil.virtual_memory()
+    mem_usage   = memory.used / 1e6
+    mem_total   = memory.total / 1e6
+    mem_percent = memory.percent
+    cpu_percent = psutil.cpu_percent()
+    
+    return {
+        'memory_usage_MB': mem_usage,
+        'memory_total_MB': mem_total,
+        'memory_percent' : mem_percent,
+        'cpu_percent'    : cpu_percent
+    }
