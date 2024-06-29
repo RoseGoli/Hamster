@@ -22,3 +22,20 @@ def emoticate(value: str, is_number: bool = False) -> str:
         return '✅' if value else '❌'
     
     return '❌'
+
+def format_large_num(num):
+    suffixes = ['', 'K', 'M', 'B', 'T', 'Q', 'QQ']
+
+    if num == 0:
+        return '0'
+
+    abs_num = abs(num)
+    magnitude = 0
+
+    while abs_num >= 1000 and magnitude < len(suffixes) - 1:
+        abs_num /= 1000
+        magnitude += 1
+
+    formatted_num = '{:.2f}'.format(abs_num).rstrip('0').rstrip('.')
+
+    return '{}{}'.format(formatted_num, suffixes[magnitude])

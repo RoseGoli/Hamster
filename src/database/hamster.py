@@ -1,5 +1,6 @@
 from .models import hamsterKombat
 from peewee import DoesNotExist
+from peewee import fn
 
 class hamster:
     def fetch(user_id: str|int):
@@ -17,3 +18,12 @@ class hamster:
             query.execute()
         except DoesNotExist:
             hamsterKombat.create(user_id=user_id, **kwargs)
+
+    def total_info():
+        total_balance = hamsterKombat.select(fn.SUM(hamsterKombat.balance)).scalar()
+        total_profit  = hamsterKombat.select(fn.SUM(hamsterKombat.profit)).scalar()
+        
+        return {
+            'balance' : total_balance,
+            'profit'  : total_profit
+        }
