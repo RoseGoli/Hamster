@@ -34,5 +34,8 @@ class hamsterKombat(BaseModel):
     profit       = IntegerField(default=0)
     last_check   = IntegerField(default=0)
 
+class config(BaseModel):
+    hamsterKombat = BooleanField(default=False)
+
 mysqlDb.connect()
-mysqlDb.create_tables([users, accounts, hamsterKombat])
+mysqlDb.create_tables([users, config, accounts, hamsterKombat])

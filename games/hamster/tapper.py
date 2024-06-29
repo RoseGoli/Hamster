@@ -9,6 +9,7 @@ from src.config import settings
 from src.database.acc import acc
 from src.utils.logger import logger
 from .fingerprint import FINGERPRINT
+from src.database.config import conf
 from src.utils.request import Request
 from src.database.hamster import hamster
 from src.utils.scripts import decode_cipher, find_best, get_mobile_user_agent
@@ -297,6 +298,10 @@ class Tapper:
             return False
     
     async def daily_events(self):
+        if not conf.fetch('hamsterKombat'):
+            logger.info(f"{self.session} | hamster clicker is offline!")
+            return False
+
         logger.info(f"{self.session} | <m>doing daily events!</m>")
 
         await self.get_nuxt_builds()
@@ -526,6 +531,11 @@ class Tapper:
     async def run(self):
         while True:
             try:
+                if not conf.fetch('hamsterKombat'):
+                    logger.info(f"{self.session} | hamster clicker is offline!")
+                    await asyncio.sleep(delay=60)
+                    continue
+
                 logger.info(f"{self.session} | account fully loaded! | <m>start working...</m>")
                 taps = randint(a=settings.RANDOM_TAPS_COUNT[0], b=settings.RANDOM_TAPS_COUNT[1])
 

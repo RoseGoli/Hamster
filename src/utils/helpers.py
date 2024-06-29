@@ -12,3 +12,13 @@ def align(args:dict, prefix:str='<code>', suffix:str='</code>', sep:str=' : ') -
 
 def rtl(string):
     return f"{string}\u200f"
+
+def emoticate(value: str, is_number: bool = False) -> str:
+    if is_number and value.isdigit():
+        emoji_digits = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
+        return ''.join(emoji_digits[int(digit)] for digit in value)
+    
+    if isinstance(value, bool):
+        return '✅' if value else '❌'
+    
+    return '❌'
