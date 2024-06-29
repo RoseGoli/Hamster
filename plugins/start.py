@@ -8,5 +8,5 @@ async def init(bot):
         user = await event.get_sender()
         await event.reply(f'Hey <b>{user.first_name}</b>!', buttons = [
             [Button.text('📊 Accounts List 📊', resize = True)],
-            [Button.text('روشن کردن ربات'), Button.text('خاموش کردن ربات')]
+            [Button.text('🚏 Clickers Status'), Button.text('Total Coins 🗼')]
         ])
