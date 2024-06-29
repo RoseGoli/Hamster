@@ -11,14 +11,22 @@ async def init(bot):
         id   = int(event.pattern_match.group(1))
         info = acc.fetch(id)
 
-        text = align({
+        main = align({
             "🌟 Name"       : f"<b>{info['name']}</b>",
             "🫀 UserId"     : f"<code>{info['user_id']}</code>",
-            #"👤 Username"   : f"@{info['username']}",
-            "📞 Phone"      : f"@{info['phone_number']}",
-            "💰 Balance"    : f"{info['balance']}",
-            "📈 PPH"        : f"{info['profit']}",
-            "🕒 Last Login" : datetime.fromtimestamp(info['last_login'])
+            "👤 Username"   : f"@{info['username']}",
+            "📞 Phone"      : f"@{info['phone_number']}"
         })
 
-        await event.edit(text, buttons = Button.inline('back', 'list'))
+        hamster = align({
+            "💰 Balance"    : f"{info['hamsterKombat']['balance']}",
+            "📈 PPH"        : f"{info['hamsterKombat']['profit']}",
+            "🕒 Last Login" : datetime.fromtimestamp(info['hamsterKombat']['last_login'])
+        })
+        
+        keys = [
+            [Button.url('🐹 Hamster', info['hamsterKombat']['url'])],
+            [Button.inline('back', 'list')]
+        ]
+
+        await event.edit(f"<b>👳🏿‍♂️ Account:</b>\n{main}\n<b>🐹 Hamster:</b>\n{hamster}", buttons = keys)

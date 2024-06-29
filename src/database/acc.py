@@ -4,8 +4,15 @@ from peewee import DoesNotExist
 class acc:
     def fetch(value: str | int):
         try:
-            query = (accounts
-                .select(accounts, hamsterKombat)
+            account_fields = set(accounts._meta.fields.keys())
+            hamster_fields = set(hamsterKombat._meta.fields.keys())
+            
+            query = (
+                accounts
+                .select(
+                    accounts,
+                    hamsterKombat
+                )
                 .join(hamsterKombat, on=(accounts.user_id == hamsterKombat.user_id))
             )
             
@@ -14,12 +21,23 @@ class acc:
             
             elif isinstance(value, str):
                 find = query.where(accounts.session_file == value).dicts().get()
+
+            result       = {}
+            hamster_info = {}
+            
+            for key, value in find.items():
+                if key in hamster_fields and key != 'user_id':
+                    hamster_info[key] = value
+                else:
+                    result[key] = value
+
+            result['hamsterKombat'] = hamster_info
             
         except DoesNotExist:
-            find = {}
+            result = {}
         
-        return find
-    
+        return result
+
     def insertOrUpdateHamster(user_id, **kwargs):
         try:
             record = accounts.get(accounts.user_id == user_id)

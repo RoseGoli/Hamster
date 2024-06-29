@@ -8,4 +8,7 @@ def align(args:dict, prefix:str='<code>', suffix:str='</code>', sep:str=' : ') -
     for key, value in args.items():
         result += prefix + str(key).ljust(maxLength) + sep + suffix + str(value) + "\n"
 
-    return result
+    return rtl(result)
+
+def rtl(string):
+    return f"{string}\u200f"

@@ -1,8 +1,5 @@
-import asyncio
-from src.telegram.multiClients import connectAndCacheClients
+from src.database.acc import acc
+import json
 
-asyncio.run(connectAndCacheClients(
-    'hamster_kombat_bot',
-    'https://hamsterkombat.io',
-    'kentId1692387237'
-))
+print(json.dumps(acc.fetch(6447374319), indent=4))
+#print(acc.fetch(6447374319))

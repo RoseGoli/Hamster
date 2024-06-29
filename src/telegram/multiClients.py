@@ -15,7 +15,7 @@ async def handleSession(session, bot: str, url: str, start_param: str = None):
         if bot == 'hamster_kombat_bot':
             search = acc.fetch(str(session))
 
-            if time() - search.get('last_login', 0) >= settings.RENEW_AUTH:
+            if time() - search['hamsterKombat'].get('last_login', 0) >= settings.RENEW_AUTH:
                 app = TelegramApp(session)
                 await app.connect()
 
@@ -44,7 +44,7 @@ async def handleSession(session, bot: str, url: str, start_param: str = None):
                 
                 hamster_client = Tapper(session)
                 new_token      = await hamster_client.login(parse_webapp_url(url))
-                token          = new_token if new_token != False else hamster.fetch(session)['token']
+                token          = new_token if new_token != False else hamster.fetch(info.id)['token']
 
                 hamster.insertOrUpdateHamster(
                     user_id = info.id,

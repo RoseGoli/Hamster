@@ -6,11 +6,11 @@ from random import randint
 from datetime import datetime, timedelta
 
 from src.config import settings
-from src.database.hamster import hamster
+from src.database.acc import acc
 from src.utils.logger import logger
 from .fingerprint import FINGERPRINT
 from src.utils.request import Request
-from src.utils.scripts import parse_webapp_url
+from src.database.hamster import hamster
 from src.utils.scripts import decode_cipher, find_best, get_mobile_user_agent
 
 class Tapper:
@@ -36,8 +36,8 @@ class Tapper:
                 "User-Agent"         : get_mobile_user_agent(),
             }
         )
-        self.me    = hamster.fetch(self.session)
-        self.token = getattr(self.me, 'token', False)
+        self.me    = acc.fetch(self.session)
+        self.token = self.me['hamsterKombat'].get('token', False)
         
         if self.token:
             self.http_client.update_headers({'Authorization' : f"Bearer {self.token}"})
@@ -318,7 +318,7 @@ class Tapper:
             f"Earn every hour: <y>{earn_on_hour:,}</y>"
         )
 
-        hamster.insertOrUpdateHamster(user_id = self.me.user_id, balance=balance, profit=earn_on_hour)
+        hamster.insertOrUpdateHamster(user_id = self.me['user_id'], balance=balance, profit=earn_on_hour)
 
         upgrades_data = await self.get_upgrades()
 
@@ -491,7 +491,7 @@ class Tapper:
                         f"Money left: <e>{balance:,}</e>"
                     )
 
-                    hamster.insertOrUpdateHamster(user_id = self.me.user_id, balance=balance, profit=earn_on_hour)
+                    hamster.insertOrUpdateHamster(user_id = self.me['user_id'], balance=balance, profit=earn_on_hour)
 
                     await asyncio.sleep(delay=1)
                     continue
@@ -515,6 +515,12 @@ class Tapper:
                     logger.success(f"{self.session} | Successfully apply energy boost")
                     await asyncio.sleep(delay=1)
                     return True
+                
+            random_sleep = randint(settings.SLEEP_BY_MIN_ENERGY[0], settings.SLEEP_BY_MIN_ENERGY[1])
+            logger.info(f"{self.session} | Minimum energy reached: {available_energy}")
+            logger.info(f"{self.session} | Sleep {random_sleep:,}s")
+            await asyncio.sleep(delay=random_sleep)
+        
         return False
     
     async def run(self):
@@ -524,7 +530,7 @@ class Tapper:
                 taps = randint(a=settings.RANDOM_TAPS_COUNT[0], b=settings.RANDOM_TAPS_COUNT[1])
 
                 profile_data = await self.get_profile_data()
-                
+
                 if profile_data:
                     available_energy = profile_data.get('availableTaps', 0)
                 else:
@@ -550,17 +556,12 @@ class Tapper:
                     f"Balance: <c>{balance:,}</c> (<g>+{calc_taps:,}</g>) | Total: <e>{total:,}</e>"
                 )
 
-                hamster.insertOrUpdateHamster(user_id = self.me.user_id, balance=balance)
-                self.auto_upgrade(self, balance, earn_on_hour)
-                is_boost = self.auto_apply_boosts(available_energy)
+                hamster.insertOrUpdateHamster(user_id = self.me['user_id'], balance=balance, profit=earn_on_hour)
+                await self.auto_upgrade(balance, earn_on_hour)
+                is_boost = await self.auto_apply_boosts(available_energy)
 
                 if is_boost:
                     continue
-
-                random_sleep = randint(settings.SLEEP_BY_MIN_ENERGY[0], settings.SLEEP_BY_MIN_ENERGY[1])
-                logger.info(f"{self.session} | Minimum energy reached: {available_energy}")
-                logger.info(f"{self.session} | Sleep {random_sleep:,}s")
-                await asyncio.sleep(delay=random_sleep)
 
             except Exception as error:
                 print(traceback.format_exc())
