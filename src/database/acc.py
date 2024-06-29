@@ -4,6 +4,7 @@ from peewee import DoesNotExist
 class acc:
     def fetch(value: str | int):
         try:
+            find           = {}
             account_fields = set(accounts._meta.fields.keys())
             hamster_fields = set(hamsterKombat._meta.fields.keys())
             
