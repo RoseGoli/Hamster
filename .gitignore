@@ -2,3 +2,4 @@ sessions/
 .vscode/
 bot.*
 __pycache__/
+.env
