@@ -1,11 +1,15 @@
 import os,shutil
 
-# from bot.utils import logger
+#from bot.utils import logger
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+def dummy_fix(string):
+    from bot.utils import logger
+    logger.warning(string)
+    
 class Settings(BaseSettings):
     if not os.path.exists('.env'):
-        # logger.warning('.env file not found creating from .env.example ...')
+        dummy_fix('.env file not found creating from .env.example ...')
         shutil.copy('.env.example','.env')
     model_config = SettingsConfigDict(env_file=".env", env_ignore_empty=True)
 
