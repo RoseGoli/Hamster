@@ -3,11 +3,11 @@ import traceback
 
 from time import time
 from src.config import settings
-from src.database.acc import acc, accounts
-from src.database.hamster import hamster
+from src.database.acc import acc
 from .telegramApp import TelegramApp
-from src.utils.scripts import getSessions
 from games.hamster.tapper import Tapper
+from src.database.hamster import hamster
+from src.utils.scripts import getSessions
 from src.utils.scripts import parse_webapp_url
 
 async def handleSession(session, bot: str, url: str, start_param: str = None):
