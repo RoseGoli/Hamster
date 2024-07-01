@@ -6,7 +6,7 @@ from telethon.tl.custom.button import Button
 from src.database.acc import accounts
 
 async def init(bot):
-    @bot.on(events.NewMessage(pattern='📊 Accounts List 📊', from_users=settings.OWNERS))
+    @bot.on(events.NewMessage(pattern='📊 Accounts List 📊', func=lambda e: e.is_private, from_users=settings.OWNERS))
     @bot.on(events.CallbackQuery(data='list', chats=settings.OWNERS))
     async def handler(event):
         list   = [Button.inline(x['name'], f"user-{x['user_id']}") for x in accounts.select().dicts()]
