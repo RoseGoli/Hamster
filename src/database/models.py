@@ -1,18 +1,10 @@
 from peewee import *
-from src.config import settings
 
-mysqlDb = MySQLDatabase(
-    'Manager',
-    user     = settings.USER,
-    password = settings.PASSWORD,
-    host     = settings.HOST,
-    port     = 3306,
-    charset  = 'utf8mb4'
-)
+sqlite_db = SqliteDatabase('database.db')
 
 class BaseModel(Model):
     class Meta:
-        database = mysqlDb
+        database = sqlite_db
 
 class users(BaseModel):
     user_id = BigIntegerField(primary_key=True)
@@ -28,7 +20,7 @@ class accounts(BaseModel):
 class hamsterKombat(BaseModel):
     user_id      = ForeignKeyField(accounts, backref='hamsterKombat')
     url          = CharField(max_length=1000)
-    token        = CharField(max_length=500)
+    token        = CharField(max_length=500, default=False)
     last_login   = IntegerField(default=0)
     balance      = IntegerField(default=0)
     profit       = IntegerField(default=0)
@@ -37,5 +29,5 @@ class hamsterKombat(BaseModel):
 class config(BaseModel):
     hamsterKombat = BooleanField(default=False)
 
-mysqlDb.connect()
-mysqlDb.create_tables([users, config, accounts, hamsterKombat])
+sqlite_db.connect()
+sqlite_db.create_tables([users, config, accounts, hamsterKombat])
