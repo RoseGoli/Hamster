@@ -5,7 +5,9 @@ import asyncio
 
 from src.config import settings
 from src.utils.logger import logger
+from telethon.errors import FloodWaitError
 from src.utils.scripts import parse_webapp_url
+from telethon.tl.types import InputBotAppShortName
 from telethon import TelegramClient as Client, functions
 
 class TelegramApp:
@@ -71,14 +73,34 @@ class TelegramApp:
             logger.error(f"{self.session} | Error during join: {error}")
             return False
     
+    async def resove_peer(self, username: str):
+        dialogs = self.client.iter_dialogs()
+        async for dialog in dialogs:
+            if (
+                dialog.entity
+                and hasattr(dialog.entity, 'username')
+                and dialog.entity.username == username
+            ):
+                break
+
+        while True:
+            try:
+                peer = await self.client.get_entity(username)
+                break
+            except FloodWaitError as fl:
+                fls = fl.value
+                logger.warning(f'{self.session} | FloodWait {fl}')
+                fls *= 2
+                logger.info(f'{self.session} | Sleep {fls}s')
+
+                await asyncio.sleep(fls)
+    
     async def get_web_data(
         self, bot: str, url: str, platform: str = 'android', 
         start_param: str = None, raw_url: bool = False
     ) -> str:
         """Fetches web data from a bot."""
         try:
-            await self.connect()
-
             web_view = await self.client(
                 functions.messages.RequestWebViewRequest(
                     peer          = bot,
@@ -89,8 +111,6 @@ class TelegramApp:
                     url           = url
                 )
             )
-
-            await self.disconnect()
 
             auth_url    = web_view.url
             tg_web_data = parse_webapp_url(auth_url)
@@ -105,6 +125,35 @@ class TelegramApp:
             await asyncio.sleep(delay=3)
             return ""
         
+    async def get_app_data(self, bot: str, platform: str = 'android',
+        start_param: str = None, short_name: str = 'start', raw_url: bool = False
+    ):
+        try:
+            web_view = await self.client(
+                functions.messages.RequestAppWebViewRequest(
+                    peer           = "me",
+                    platform       = platform,
+                    start_param    = start_param,
+                    app            = InputBotAppShortName(
+                        bot_id     = await self.client.get_input_entity(bot),
+                        short_name = short_name
+                    )
+                )
+            )
+
+            auth_url    = web_view.url
+            tg_web_data = parse_webapp_url(auth_url)
+
+            if raw_url:
+                return auth_url
+
+            return tg_web_data
+        
+        except Exception as error:
+            logger.error(f"{self.session} | Failed to get app data: {error}")
+            await asyncio.sleep(delay=3)
+            return ""
+    
     def move_bad_session_files(self):
         extensions  = ['.session', '.json']
         moved_files = []

@@ -15,6 +15,6 @@ async def init(bot):
         if list:
             msg = "<b>🌱 Your account list :\n</b>"
         else:
-            msg = "<b>📦 You dont have any accounts!\n/b>"
+            msg = "<b>📦 You dont have any accounts!\n</b>"
 
         await getattr(event, method)(rtl(msg), buttons = [x for x in chunk(list, 3)] if list else None)

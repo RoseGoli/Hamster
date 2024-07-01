@@ -64,6 +64,23 @@ class Tapper:
             )
             return False
         
+    async def add_referral(self, friendUserId = None):
+        response, error = await self.http_client.send_request(
+            method   = 'POST',
+            endpoint = '/clicker/add-referral',
+            data     = {
+                "friendUserId": int(friendUserId or settings.OWNERS[0])
+            }
+        )
+
+        if response and 'welcomeCoins' in response:
+            return response
+        else:
+            logger.error(
+                f"{self.session} | Failed [addReferral]: {error or response}"
+            )
+            return False
+    
     async def get_me_telegram(self):
         response, error = await self.http_client.send_request(
             method   = 'POST',

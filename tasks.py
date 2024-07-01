@@ -24,8 +24,11 @@ async def startup():
     )
 
     sessions = getSessions()
+    referal  = [asyncio.create_task(Tapper(session).add_referral()) for session in sessions]
     tasks    = [asyncio.create_task(Tapper(session).run()) for session in sessions]
-    await asyncio.gather(*tasks)
+    allJobs  = referal + tasks
+
+    await asyncio.gather(*allJobs)
 
 @group.task(trigger=Every(minutes=60))
 async def every():
