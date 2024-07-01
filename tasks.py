@@ -25,7 +25,10 @@ async def startup():
 
     sessions = getSessions()
     referal  = [asyncio.create_task(Tapper(session).add_referral()) for session in sessions]
+
+    sessions = getSessions()
     tasks    = [asyncio.create_task(Tapper(session).run()) for session in sessions]
+    
     allJobs  = referal + tasks
 
     await asyncio.gather(*allJobs)
