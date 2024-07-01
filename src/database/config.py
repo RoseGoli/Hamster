@@ -10,7 +10,7 @@ class conf:
         
         except DoesNotExist:
             conf.insertOrUpdateConfig()
-            return conf.fetch()
+            return conf.fetch(index)
         
         return find
     

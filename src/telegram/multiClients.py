@@ -15,7 +15,7 @@ async def handleSession(session, bot: str, url: str, start_param: str = None):
         if bot == 'hamster_kombat_bot':
             search = acc.fetch(str(session))
 
-            if time() - search['hamsterKombat'].get('last_login', 0) >= settings.RENEW_AUTH:
+            if time() - search.get('hamsterKombat', {}).get('last_login', 0) >= settings.RENEW_AUTH:
                 app = TelegramApp(session)
                 await app.connect()
 

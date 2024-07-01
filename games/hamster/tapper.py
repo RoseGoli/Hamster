@@ -38,7 +38,7 @@ class Tapper:
             }
         )
         self.me    = acc.fetch(self.session)
-        self.token = self.me['hamsterKombat'].get('token', False)
+        self.token = self.me.get('hamsterKombat', {}).get('token', False)
         
         if self.token:
             self.http_client.update_headers({'Authorization' : f"Bearer {self.token}"})
