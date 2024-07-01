@@ -5,3 +5,5 @@ Telethon
 numpy
 requests
 fake_useragent
+peewee
+aioclock
