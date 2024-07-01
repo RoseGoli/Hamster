@@ -4,3 +4,4 @@ sessions/*
 bad_sessions/*
 test.py
 __pycache__/
+database.db
