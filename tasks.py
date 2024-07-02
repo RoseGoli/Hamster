@@ -36,7 +36,7 @@ async def startup():
 
     await asyncio.gather(*allJobs)
 
-@group.task(trigger=Every(minutes=60))
+@group.task(trigger=Every(minutes=1))
 async def every():
     logger.info("Cache on Every 60 minutes")
     await connectAndCacheClients(

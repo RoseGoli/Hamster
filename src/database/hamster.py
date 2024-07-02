@@ -11,7 +11,7 @@ class hamster:
         
         return find
     
-    def insertOrUpdateHamster(user_id, **kwargs):
+    def insertOrUpdate(user_id, **kwargs):
         try:
             record = hamsterKombat.get(hamsterKombat.user_id == user_id)
             query  = hamsterKombat.update(**kwargs).where(hamsterKombat.user_id == user_id)

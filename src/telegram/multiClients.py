@@ -15,14 +15,24 @@ from src.utils.scripts import parse_webapp_url
 async def handleSession(session, bot: str, url: str, start_param: str = None):
     try:
         if bot == 'hamster_kombat_bot':
-            search = acc.fetch(str(session))
+            search = acc.fetch(session)
+            timer  = search.get('hamsterKombat', {}).get('last_login', 0)
+            token  = search.get('hamsterKombat', {}).get('token', False)
 
-            if time() - search.get('hamsterKombat', {}).get('last_login', 0) >= settings.RENEW_AUTH:
+            if (time() - timer >= settings.RENEW_AUTH) or token == False:
+
                 app = TelegramApp(session)
                 await app.connect()
 
                 info = (await app.getClient().get_me())
 
+                if acc.fetch(info.id):
+                    try:
+                        await app.disconnect()
+                        app.move_bad_session_files()
+                    except:
+                        pass
+                
                 await app.resove_peer(bot)
 
                 url = await app.get_web_data(
@@ -32,16 +42,16 @@ async def handleSession(session, bot: str, url: str, start_param: str = None):
                     raw_url     = True
                 )
 
-                acc.insertOrUpdateHamster(
+                acc.insertOrUpdate(
                     user_id      = info.id,
                     name         = ' '.join(filter(None, [info.first_name, info.last_name])),
-                    username     = info.username,
+                    username     = info.username if (hasattr(info, 'username') and info.username != None) else 'LeadNeil',
                     phone_number = info.phone,
                     session_file = session
                 )
 
                 if url:
-                    hamster.insertOrUpdateHamster(
+                    hamster.insertOrUpdate(
                         user_id      = info.id,
                         url          = url,
                         last_login   = time()
@@ -51,13 +61,13 @@ async def handleSession(session, bot: str, url: str, start_param: str = None):
                 new_token      = await hamster_client.login(parse_webapp_url(url))
                 token          = new_token if new_token != False else hamster.fetch(info.id)['token']
 
-                while not token:
-                    token = hamster_client.login(parse_webapp_url(url))
+                while token == False:
+                    token = await hamster_client.login(parse_webapp_url(url))
                     sleep = random.randint(1, 10)
                     logger.warning(f"{session} | sleep {sleep}sec befor token cache!")
                     await asyncio.sleep(sleep)
 
-                hamster.insertOrUpdateHamster(
+                hamster.insertOrUpdate(
                     user_id = info.id,
                     token   = token
                 )

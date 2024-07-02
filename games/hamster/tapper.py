@@ -356,7 +356,7 @@ class Tapper:
             f"Earn every hour: <y>{earn_on_hour:,}</y>"
         )
 
-        hamster.insertOrUpdateHamster(user_id = self.me['user_id'], balance=balance, profit=earn_on_hour)
+        hamster.insertOrUpdate(user_id = self.me['user_id'], balance=balance, profit=earn_on_hour)
 
         upgrades_data = await self.get_upgrades()
 
@@ -537,7 +537,7 @@ class Tapper:
                         f"Money left: <e>{balance:,}</e>"
                     )
 
-                    hamster.insertOrUpdateHamster(user_id = self.me['user_id'], balance=balance, profit=earn_on_hour)
+                    hamster.insertOrUpdate(user_id = self.me['user_id'], balance=balance, profit=earn_on_hour)
 
                     await asyncio.sleep(delay=1)
                     continue
@@ -607,7 +607,7 @@ class Tapper:
                     f"Balance: <c>{balance:,}</c> (<g>+{calc_taps:,}</g>) | Total: <e>{total:,}</e>"
                 )
 
-                hamster.insertOrUpdateHamster(user_id = self.me['user_id'], balance=balance, profit=earn_on_hour)
+                hamster.insertOrUpdate(user_id = self.me['user_id'], balance=balance, profit=earn_on_hour)
                 await self.auto_upgrade(balance, earn_on_hour)
                 is_boost = await self.auto_apply_boosts(available_energy)
 

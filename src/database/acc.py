@@ -1,5 +1,5 @@
 from .models import accounts, hamsterKombat
-from peewee import DoesNotExist
+from peewee import DoesNotExist, IntegrityError
 
 class acc:
     def fetch(value: str | int):
@@ -34,15 +34,20 @@ class acc:
 
             result['hamsterKombat'] = hamster_info
             
-        except DoesNotExist:
+        except DoesNotExist as e:
             result = {}
         
         return result
-
-    def insertOrUpdateHamster(user_id, **kwargs):
+    
+    def insertOrUpdate(user_id, **kwargs):
         try:
             record = accounts.get(accounts.user_id == user_id)
-            query  = accounts.update(**kwargs).where(accounts.user_id == user_id)
-            query.execute()
+            for key, value in kwargs.items():
+                setattr(record, key, value)
+            record.save()
         except DoesNotExist:
-            accounts.create(user_id=user_id, **kwargs)
+            try:
+                accounts.create(user_id=user_id, **kwargs)
+            except IntegrityError as e:
+                print(f"IntegrityError: {e}")
+                raise
