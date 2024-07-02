@@ -80,6 +80,21 @@ class Tapper:
                 f"{self.session} | Failed [addReferral]: {error or response}"
             )
             return False
+        
+    async def get_airdrop_tasks(self):
+        response, error = await self.http_client.send_request(
+            method   = 'POST',
+            endpoint = '/clicker/list-airdrop-tasks',
+            data     = {}
+        )
+
+        if response and 'airdropTasks' in response:
+            return response
+        else:
+            logger.error(
+                f"{self.session} | Failed [airdropTasks]: {error or response}"
+            )
+            return False
     
     async def get_me_telegram(self):
         response, error = await self.http_client.send_request(
@@ -323,7 +338,8 @@ class Tapper:
 
         await self.get_nuxt_builds()
         await self.get_me_telegram()
-
+        await self.get_airdrop_tasks()
+        
         game_config  = await self.get_config()
         profile_data = await self.get_profile_data()
 
