@@ -366,7 +366,7 @@ class Tapper:
                         and data.get('cooldownSeconds', 0) == 0
                         and data.get('maxLevel', data['level']) >= data['level']
                         and (data.get('condition') is None
-                                or data['condition'].get('_type') != 'SubscribeTelegramChannel')
+                                or data['condition'].get('_type') == 'SubscribeTelegramChannel')
                     ]
 
                     if date == datetime.now().strftime("%d-%m-%y"):
@@ -479,7 +479,7 @@ class Tapper:
                         and data.get('maxLevel', data['level']) >= data['level']
                     and (
                         data.get('condition') is None
-                        or data['condition'].get('_type') != 'SubscribeTelegramChannel'
+                        or data['condition'].get('_type') == 'SubscribeTelegramChannel'
                     )
                 ]
 
