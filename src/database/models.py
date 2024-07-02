@@ -13,7 +13,7 @@ class users(BaseModel):
 class accounts(BaseModel):
     user_id      = BigIntegerField(primary_key=True)
     name         = CharField(max_length=100)
-    username     = CharField(max_length=100)
+    username     = CharField(max_length=100, default=False)
     phone_number = CharField(max_length=50)
     session_file = CharField(max_length=100)
 

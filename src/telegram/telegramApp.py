@@ -88,7 +88,7 @@ class TelegramApp:
                 peer = await self.client.get_entity(username)
                 break
             except FloodWaitError as fl:
-                fls = fl.value
+                fls = fl.seconds
                 logger.warning(f'{self.session} | FloodWait {fl}')
                 fls *= 2
                 logger.info(f'{self.session} | Sleep {fls}s')
