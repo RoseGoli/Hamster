@@ -65,9 +65,7 @@ class TelegramApp:
     async def join_channel(self, channel: str) -> bool:
         """Joins a Telegram channel."""
         try:
-            await self.connect()
             await self.client(functions.channels.JoinChannelRequest(channel))
-            await self.disconnect()
             return True
         except Exception as error:
             logger.error(f"{self.session} | Error during join: {error}")
@@ -88,12 +86,12 @@ class TelegramApp:
                 peer = await self.client.get_entity(username)
                 break
             except FloodWaitError as fl:
-                fls = fl.seconds
                 logger.warning(f'{self.session} | FloodWait {fl}')
-                fls *= 2
-                logger.info(f'{self.session} | Sleep {fls}s')
-
-                await asyncio.sleep(fls)
+                raise
+                # fls = fl.seconds
+                # fls *= 2
+                # logger.info(f'{self.session} | Sleep {fls}s')
+                # #await asyncio.sleep(fls)
     
     async def get_web_data(
         self, bot: str, url: str, platform: str = 'android', 

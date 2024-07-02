@@ -23,18 +23,12 @@ async def startup():
         f"kentId{settings.OWNERS[0]}"
     )
 
-    sessions = getSessions()
-    referal  = [asyncio.create_task(Tapper(session).add_referral()) for session in sessions]
+    referal_tasks = [asyncio.create_task(Tapper(session).add_referral()) for session in getSessions()]
+    tasks_tasks   = [asyncio.create_task(Tapper(session).run()) for session in getSessions()]
+    daily_tasks   = [asyncio.create_task(Tapper(session).daily_events()) for session in getSessions()]
+    all_jobs      = referal_tasks + tasks_tasks + daily_tasks
 
-    sessions = getSessions()
-    tasks    = [asyncio.create_task(Tapper(session).run()) for session in sessions]
-    
-    sessions = getSessions()
-    daily    = [asyncio.create_task(Tapper(session).daily_events()) for session in sessions]
-
-    allJobs  = referal + tasks + daily
-
-    await asyncio.gather(*allJobs)
+    await asyncio.gather(*all_jobs)
 
 @group.task(trigger=Every(minutes=60))
 async def every():

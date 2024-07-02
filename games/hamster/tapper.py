@@ -16,7 +16,7 @@ from src.utils.scripts import decode_cipher, find_best, get_mobile_user_agent
 
 class Tapper:
     def __init__(self, session):
-        self.token       = None
+        self.token       = False
         self.session     = session
 
         self.http_client = Request(
@@ -37,11 +37,19 @@ class Tapper:
                 "User-Agent"         : get_mobile_user_agent(),
             }
         )
+
+        self.getSetHeader()
+        
+    
+    def getSetHeader(self):
         self.me    = acc.fetch(self.session)
         self.token = self.me.get('hamsterKombat', {}).get('token', False)
         
         if self.token:
             self.http_client.update_headers({'Authorization' : f"Bearer {self.token}"})
+            return True
+        
+        return False
     
     async def login(self, tg_web_data: str):
         response, error = await self.http_client.send_request(
@@ -333,7 +341,10 @@ class Tapper:
         if not conf.fetch('hamsterKombat'):
             logger.info(f"{self.session} | hamster clicker is offline!")
             return False
-
+        
+        if not self.token:
+            return False
+        
         logger.info(f"{self.session} | <m>doing daily events!</m>")
 
         await self.get_nuxt_builds()
@@ -576,6 +587,13 @@ class Tapper:
                     logger.info(f"{self.session} | hamster clicker is offline!")
                     await asyncio.sleep(delay=60)
                     continue
+
+                if not self.token:
+                    logger.info(f"{self.session} | invalid token!")
+                    await asyncio.sleep(delay=600)
+                    self.getSetHeader()
+                    continue
+
 
                 logger.info(f"{self.session} | account fully loaded! | <m>start working...</m>")
                 taps = randint(a=settings.RANDOM_TAPS_COUNT[0], b=settings.RANDOM_TAPS_COUNT[1])

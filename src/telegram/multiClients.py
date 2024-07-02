@@ -19,21 +19,14 @@ async def handleSession(session, bot: str, url: str, start_param: str = None):
             timer  = search.get('hamsterKombat', {}).get('last_login', 0)
             token  = search.get('hamsterKombat', {}).get('token', False)
 
-            if (time() - timer >= settings.RENEW_AUTH) or token == False:
+            if (time() - timer >= settings.RENEW_AUTH) or not token:
 
                 app = TelegramApp(session)
                 await app.connect()
 
                 info = (await app.getClient().get_me())
-
-                if acc.fetch(info.id):
-                    try:
-                        await app.disconnect()
-                        app.move_bad_session_files()
-                    except:
-                        pass
                 
-                await app.resove_peer(bot)
+                #await app.resove_peer(bot)
 
                 url = await app.get_web_data(
                     bot         = bot,
@@ -45,7 +38,7 @@ async def handleSession(session, bot: str, url: str, start_param: str = None):
                 acc.insertOrUpdate(
                     user_id      = info.id,
                     name         = ' '.join(filter(None, [info.first_name, info.last_name])),
-                    username     = info.username if (hasattr(info, 'username') and info.username != None) else 'LeadNeil',
+                    username     = info.username if (hasattr(info, 'username') and info.username != None) else None,
                     phone_number = info.phone,
                     session_file = session
                 )
@@ -57,20 +50,20 @@ async def handleSession(session, bot: str, url: str, start_param: str = None):
                         last_login   = time()
                     )
                 
-                hamster_client = Tapper(session)
-                new_token      = await hamster_client.login(parse_webapp_url(url))
-                token          = new_token if new_token != False else hamster.fetch(info.id)['token']
+                    hamster_client = Tapper(session)
+                    new_token      = await hamster_client.login(parse_webapp_url(url))
+                    token          = new_token if new_token != False else hamster.fetch(info.id)['token']
 
-                while token == False:
-                    token = await hamster_client.login(parse_webapp_url(url))
-                    sleep = random.randint(1, 10)
-                    logger.warning(f"{session} | sleep {sleep}sec befor token cache!")
-                    await asyncio.sleep(sleep)
+                    while not token:
+                        token = await hamster_client.login(parse_webapp_url(url))
+                        sleep = random.randint(1, 10)
+                        logger.warning(f"{session} | sleep {sleep}sec befor token cache!")
+                        await asyncio.sleep(sleep)
 
-                hamster.insertOrUpdate(
-                    user_id = info.id,
-                    token   = token
-                )
+                    hamster.insertOrUpdate(
+                        user_id = info.id,
+                        token   = token
+                    )
 
                 await app.disconnect()
     except Exception as e:
@@ -79,8 +72,9 @@ async def handleSession(session, bot: str, url: str, start_param: str = None):
 
 async def connectAndCacheClients(bot: str, url: str, start_param: str = None):
     sessions = getSessions()
-    tasks = [
-        handleSession(session, bot, url, start_param)
+    tasks    = [
+        asyncio.create_task(handleSession(session, bot, url, start_param))
         for session in sessions
     ]
+
     await asyncio.gather(*tasks)
