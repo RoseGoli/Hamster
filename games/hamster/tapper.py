@@ -171,11 +171,11 @@ class Tapper:
             )
             return False
         
-    async def get_daily(self):
+    async def get_daily(self, id = 'streak_days'):
         response, error = await self.http_client.send_request(
             method   = 'POST',
             endpoint = '/clicker/check-task',
-            data     = {'taskId': "streak_days"}
+            data     = {'taskId': id}
         )
 
         if response:
@@ -339,7 +339,7 @@ class Tapper:
         await self.get_nuxt_builds()
         await self.get_me_telegram()
         await self.get_airdrop_tasks()
-        
+
         game_config  = await self.get_config()
         profile_data = await self.get_profile_data()
 
@@ -433,7 +433,15 @@ class Tapper:
                                     f"Bonus: <g>+{bonus:,}</g>"
                                 )
 
-        tasks        = await self.get_tasks()
+        tasks = await self.get_tasks()
+
+        for task in tasks:
+            if task['id'] not in ['streak_days', 'invite_friends', 'select_exchange']:
+                status = await self.get_daily(task['id'])
+                if status is True:
+                    logger.success(f"{self.session} | Successfully get daily {task['id']}")
+                await asyncio.sleep(delay=5)
+
         daily_task   = tasks[-1]
         rewards      = daily_task['rewardsByDays']
         is_completed = daily_task['isCompleted']
@@ -471,10 +479,10 @@ class Tapper:
             await asyncio.sleep(delay=2)
         
         exchange_id = profile_data.get('exchangeId')
-        if not exchange_id:
-            status = await self.select_exchange(exchange_id="bybit")
+        if not exchange_id or exchange_id != 'hamster':
+            status = await self.select_exchange(exchange_id="bingx")
             if status is True:
-                logger.success(f"{self.session} | Successfully selected exchange <y>Bybit</y>")
+                logger.success(f"{self.session} | Successfully selected exchange <y>bingx</y>")
 
     async def auto_upgrade(self, balance, earn_on_hour):
         if settings.AUTO_UPGRADE is True:
