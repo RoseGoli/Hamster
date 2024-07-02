@@ -25,8 +25,9 @@ async def handleSession(session, bot: str, url: str, start_param: str = None):
 
                 await app.resove_peer(bot)
 
-                url = await app.get_app_data(
+                url = await app.get_web_data(
                     bot         = bot,
+                    url         = url,
                     start_param = start_param,
                     raw_url     = True
                 )
