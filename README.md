@@ -1,4 +1,4 @@
-# Hamster Cliker 🐹
+# Hamster Clicker 🐹
 
 ## Overview
 Hamster is a Python-based project designed to collect hamster-coins 🎉. This guide will help you clone, set up, and run the project on your local machine.
