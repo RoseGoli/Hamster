@@ -1,7 +1,7 @@
-sessions/*
-.vscode/*
+sessions/
+.vscode/
 .env
-bad_sessions/*
+bad_sessions/
 test.py
 __pycache__/
 database.db
