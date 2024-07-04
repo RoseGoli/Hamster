@@ -1,7 +1,5 @@
 from src.utils.scripts import generate_random_visitor_id
 
-visitor_id = generate_random_visitor_id()
-
 FINGERPRINT = {
     'fingerprint': {
         'version': '4.2.1',
