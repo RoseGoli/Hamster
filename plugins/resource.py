@@ -3,7 +3,7 @@ from src.config import settings
 from src.utils.helpers import align, get_server_usage
 
 async def init(bot):
-    @bot.on(events.NewMessage(pattern='🎛 Resources 🎛', func=lambda e: e.is_private, from_users=settings.OWNERS))
+    @bot.on(events.NewMessage(pattern=r'^🎛 Resources 🎛$', func=lambda e: e.is_private, from_users=settings.OWNERS))
     async def handler(event):
         su = get_server_usage()
 
