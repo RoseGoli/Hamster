@@ -1,6 +1,6 @@
 import os
 
-from config import settings
+from src.config import settings
 from utils.logger import logger
 from telethon import TelegramClient as Client
 
