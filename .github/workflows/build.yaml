@@ -4,7 +4,7 @@ run-name: "🧪 Build "
 on:
   push:
     branches:
-      - '*'
+      - main
   workflow_dispatch:
 
 concurrency:
