@@ -1,7 +1,7 @@
 import os
 
 from src.config import settings
-from utils.logger import logger
+from src.utils.logger import logger
 from telethon import TelegramClient as Client
 
 async def register_sessions() -> None:
