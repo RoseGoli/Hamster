@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     API_ID              : int
     API_HASH            : str
     TG_TOKEN            : str
+    OWNERS              : list[int]
+    
     MAIN_NAME           : str = 'bot'
     SESSION_PATH        : str = 'sessions'
     BAD_SESSIONS_PATH   : str = 'bad_sessions'
@@ -26,7 +28,6 @@ class Settings(BaseSettings):
     
     RANDOM_TAPS_COUNT   : list[int] = [10, 50]
     SLEEP_BETWEEN_TAP   : list[int] = [10, 25]
-    OWNERS              : list[int]
 
     USE_PROXY_FROM_FILE : bool = False
     RENEW_AUTH          : int = 3600
