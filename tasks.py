@@ -1,7 +1,7 @@
 import asyncio
 
 from aioclock.group import Group
-from aioclock import AioClock, Every, OnStartUp
+from aioclock import AioClock, Every, Once
 
 from src.config import settings
 from src.utils.logger import logger
@@ -13,8 +13,8 @@ group = Group()
 app   = AioClock()
 app.include_group(group)
 
-@app.task(trigger=OnStartUp())
-async def startup():
+@app.task(trigger=Once())
+async def once():
     logger.info('tasks on startup!')
 
     await connectAndCacheClients(
