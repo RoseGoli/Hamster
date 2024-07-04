@@ -5,7 +5,7 @@ from src.utils.helpers import rtl, emoticate
 from telethon.tl.custom.button import Button
 
 async def init(bot):
-    @bot.on(events.NewMessage(pattern='🚏 Clickers Status', func=lambda e: e.is_private, from_users=settings.OWNERS))
+    @bot.on(events.NewMessage(pattern=r'🚏 Clickers Status', func=lambda e: e.is_private, from_users=settings.OWNERS))
     async def handler(event):
         info = conf.fetch()
         del info['id']

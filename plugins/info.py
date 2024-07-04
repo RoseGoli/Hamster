@@ -6,7 +6,7 @@ from src.utils.helpers import align
 from telethon.tl.custom.button import Button
 
 async def init(bot):
-    @bot.on(events.CallbackQuery(pattern='^user\-(\d+)$', func=lambda e: e.is_private, chats=settings.OWNERS))
+    @bot.on(events.CallbackQuery(pattern=r'^user\-(\d+)$', func=lambda e: e.is_private, chats=settings.OWNERS))
     async def handler(event):
         id   = int(event.pattern_match.group(1))
         info = acc.fetch(id)

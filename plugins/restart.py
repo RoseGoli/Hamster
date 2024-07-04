@@ -7,7 +7,7 @@ from src.config import settings
 MAGIC_FILE = os.path.join(os.path.dirname(__file__), 'self-update.lock')
 
 async def init(bot):
-    @bot.on(events.NewMessage(pattern='🔄 Restart Bot', func=lambda e: e.is_private, from_users=settings.OWNERS))
+    @bot.on(events.NewMessage(pattern=r'🔄 Restart Bot', func=lambda e: e.is_private, from_users=settings.OWNERS))
     async def handler(event):
         await event.delete()
         m = await event.respond('<b>Checking for plugin updates…</b>')
