@@ -31,10 +31,6 @@ class Settings(BaseSettings):
 
     USE_PROXY_FROM_FILE : bool = False
 
-    USER     : str = 'root'
-    PASSWORD : str = ''
-    HOST     : str = 'localhost'
-
     RENEW_AUTH : int = 3600
 
 settings = Settings()
