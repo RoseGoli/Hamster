@@ -8,7 +8,6 @@ class Settings(BaseSettings):
     API_HASH            : str
     TG_TOKEN            : str
     MAIN_NAME           : str = 'bot'
-    MAIN_NAME           : str
     SESSION_PATH        : str = 'sessions'
     BAD_SESSIONS_PATH   : str = 'bad_sessions'
 
