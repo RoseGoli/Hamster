@@ -48,6 +48,14 @@ cp .env.example .env
 ```
 
 Open the `.env` file and configure the necessary environment variables.
+add the following variables with their respective values:
+```
+API_ID   = your_api_id
+API_HASH = your_api_hash
+TG_TOKEN = your_tg_token
+OWNERS   = [owner1,owner2]
+```
+Make sure to replace your_api_id, your_api_hash, your_tg_token, and owners with the actual values.
 
 ### Run the Project
 Finally, run the main script to start the project:
