@@ -448,10 +448,11 @@ class Tapper:
 
         for task in tasks:
             if task['id'] not in ['streak_days', 'invite_friends', 'select_exchange']:
-                status = await self.get_daily(task['id'])
-                if status is True:
-                    logger.success(f"{self.session} | Successfully get daily {task['id']}")
-                await asyncio.sleep(delay=5)
+                if task['isCompleted'] is False:
+                    status = await self.get_daily(task['id'])
+                    if status is True:
+                        logger.success(f"{self.session} | Successfully get daily {task['id']}")
+                    await asyncio.sleep(delay=5)
 
         daily_task   = tasks[-1]
         rewards      = daily_task['rewardsByDays']
@@ -490,7 +491,7 @@ class Tapper:
             await asyncio.sleep(delay=2)
         
         exchange_id = profile_data.get('exchangeId')
-        if not exchange_id or exchange_id != 'hamster':
+        if not exchange_id or exchange_id == 'hamster':
             status = await self.select_exchange(exchange_id="bingx")
             if status is True:
                 logger.success(f"{self.session} | Successfully selected exchange <y>bingx</y>")

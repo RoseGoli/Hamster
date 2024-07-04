@@ -3,6 +3,7 @@ import asyncio
 import traceback
 
 from time import time
+from telethon import functions
 from src.config import settings
 from src.database.acc import acc
 from src.utils.logger import logger
@@ -27,6 +28,9 @@ async def handleSession(session, bot: str, url: str, start_param: str = None):
                 info = (await app.getClient().get_me())
                 
                 #await app.resove_peer(bot)
+                await app.getClient()(functions.account.UpdateStatusRequest(
+                    offline=False
+                ))
 
                 url = await app.get_web_data(
                     bot         = bot,
