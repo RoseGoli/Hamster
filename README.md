@@ -1,4 +1,5 @@
 # Hamster Clicker 🐹
+![Untitled](https://github.com/RoseGoli/Hamster/assets/70085500/8f673aeb-a823-43a5-bf80-f0410fcc00f2)
 
 ## Overview
 Hamster is a Python-based project designed to collect hamster-coins 🎉. This guide will help you clone, set up, and run the project on your local machine.
