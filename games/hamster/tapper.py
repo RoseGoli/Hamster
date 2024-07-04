@@ -339,7 +339,7 @@ class Tapper:
     
     async def daily_events(self):
         if not conf.fetch('hamsterKombat'):
-            logger.info(f"{self.session} | hamster clicker is offline!")
+            logger.info(f"{self.session} | daily hamster clicker is offline!")
             return False
         
         if not self.token:
