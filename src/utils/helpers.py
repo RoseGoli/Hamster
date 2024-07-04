@@ -40,7 +40,7 @@ def format_large_num(num):
 
     formatted_num = '{:.2f}'.format(abs_num).rstrip('0').rstrip('.')
 
-    return '{}{}'.format(formatted_num, suffixes[magnitude])
+    return '{} {}'.format(formatted_num, suffixes[magnitude])
 
 def get_server_usage():
     memory      = psutil.virtual_memory()
