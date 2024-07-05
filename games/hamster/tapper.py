@@ -33,8 +33,7 @@ class Tapper:
                 'Sec-Fetch-Site'     : 'same-site',
                 'Sec-Ch-Ua'          : '"Android WebView";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
                 'Sec-Ch-Ua-mobile'   : '?1',
-                'Sec-Ch-Ua-platform' : '"Android"',
-                "User-Agent"         : get_mobile_user_agent(),
+                'Sec-Ch-Ua-platform' : '"Android"'
             }
         )
 
@@ -42,11 +41,15 @@ class Tapper:
         
     
     def getSetHeader(self):
-        self.me    = acc.fetch(self.session)
-        self.token = self.me.get('hamsterKombat', {}).get('token', False)
-        
+        self.me         = acc.fetch(self.session)
+        self.token      = self.me.get('hamsterKombat', {}).get('token', False)
+        self.user_agent = self.me.get('user_agent', False)
+
         if self.token:
-            self.http_client.update_headers({'Authorization' : f"Bearer {self.token}"})
+            self.http_client.update_headers({
+                'Authorization' : f"Bearer {self.token}",
+                'User-Agent'    : self.user_agent
+            })
             return True
         
         return False

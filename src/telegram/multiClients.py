@@ -11,7 +11,7 @@ from .telegramApp import TelegramApp
 from games.hamster.tapper import Tapper
 from src.database.hamster import hamster
 from src.utils.scripts import getSessions
-from src.utils.scripts import parse_webapp_url
+from src.utils.scripts import parse_webapp_url, get_mobile_user_agent
 
 async def handleSession(session, bot: str, url: str, start_param: str = None):
     try:
@@ -44,7 +44,8 @@ async def handleSession(session, bot: str, url: str, start_param: str = None):
                     name         = ' '.join(filter(None, [info.first_name, info.last_name])),
                     username     = info.username if (hasattr(info, 'username') and info.username != None) else None,
                     phone_number = info.phone,
-                    session_file = session
+                    session_file = session,
+                    user_agent   = get_mobile_user_agent()
                 )
 
                 if url:

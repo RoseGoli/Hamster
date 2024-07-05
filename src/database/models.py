@@ -16,6 +16,7 @@ class accounts(BaseModel):
     username     = CharField(max_length=100, default = None, null = True)
     phone_number = CharField(max_length=50)
     session_file = CharField(max_length=100)
+    user_agent   = CharField(max_length=300)
 
 class hamsterKombat(BaseModel):
     user_id      = ForeignKeyField(accounts, backref='hamsterKombat')
