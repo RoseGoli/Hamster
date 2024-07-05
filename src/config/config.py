@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     MAIN_NAME           : str = 'bot'
     SESSION_PATH        : str = 'sessions'
     BAD_SESSIONS_PATH   : str = 'bad_sessions'
+    DB_PATH             : str = 'database.db'
 
     MIN_AVAILABLE_ENERGY: int = 100
     SLEEP_BY_MIN_ENERGY : list[int] = [1800, 2400]
