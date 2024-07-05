@@ -21,14 +21,16 @@ async def init(bot):
     @bot.on(events.CallbackQuery(pattern='^change\-(.*)$', chats=settings.OWNERS))
     async def handler(event):
         index = event.pattern_match.group(1).decode('utf-8')
-        info  = conf.fetch()
+        info  = conf.fetch(index)
 
+        conf.insertOrUpdateConfig(**{index: not info})
+
+        info = conf.fetch()
         del info['id']
-        conf.insertOrUpdateConfig(**{index: not info[index]})
-
+        
         msg  = "<b>Change bot clickers status:\n</b>"
         list = [
-            [Button.inline(key, f"change-{key}"), Button.inline(emoticate(not value), f"change-{key}")]
+            [Button.inline(key, f"change-{key}"), Button.inline(emoticate(value), f"change-{key}")]
             for key, value in info.items()
         ]
 
