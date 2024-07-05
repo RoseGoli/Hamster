@@ -12,7 +12,7 @@ from .fingerprint import FINGERPRINT
 from src.database.config import conf
 from src.utils.request import Request
 from src.database.hamster import hamster
-from src.utils.scripts import decode_cipher, find_best, get_mobile_user_agent
+from src.utils.scripts import decode_cipher, find_best
 
 class Tapper:
     def __init__(self, session):
@@ -76,6 +76,9 @@ class Tapper:
             return False
         
     async def add_referral(self, friendUserId = None):
+        if not self.token:
+            return False
+        
         response, error = await self.http_client.send_request(
             method   = 'POST',
             endpoint = '/clicker/add-referral',
