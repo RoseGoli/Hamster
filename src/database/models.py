@@ -1,6 +1,7 @@
 from peewee import *
+from src.config import settings
 
-sqlite_db = SqliteDatabase('database.db')
+sqlite_db = SqliteDatabase(settings.DB_PATH)
 
 class BaseModel(Model):
     class Meta:
