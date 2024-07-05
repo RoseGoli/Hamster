@@ -8,8 +8,11 @@ services:
     restart: always
     env_file:
       - .env
+    privileged: true
+    network_mode: "host"
     volumes:
       - ./sessions:/app/sessions
+      - ./database.db:/app/database.db
     logging:
       driver: "json-file"
       options:
