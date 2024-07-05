@@ -497,7 +497,7 @@ class Tapper:
                 logger.success(f"{self.session} | Successfully selected exchange <y>bingx</y>")
 
     async def auto_upgrade(self, balance, earn_on_hour):
-        if settings.AUTO_UPGRADE is True:
+        if conf.fetch('hamsterKombatUpgrade'):
             upgrades = await self.get_upgrades()
             for _ in range(settings.UPGRADES_COUNT):
                 if isinstance(upgrades, dict):
@@ -560,7 +560,7 @@ class Tapper:
             energy_boost = next((boost for boost in boosts if boost['id'] == 'BoostFullAvailableTaps'), {})
 
             if (
-                settings.APPLY_DAILY_ENERGY is True
+                conf.fetch('hamsterKombatBoosts')
                 and energy_boost.get("cooldownSeconds", 0) == 0
                 and energy_boost.get("level", 0) <= energy_boost.get("maxLevel", 0)
             ):
