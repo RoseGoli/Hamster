@@ -55,3 +55,6 @@ def get_server_usage():
         'memory_percent' : mem_percent,
         'cpu_percent'    : cpu_percent
     }
+
+def camel2space(string):
+    return ''.join(map(lambda x: x if x.islower() else " " + x, string))

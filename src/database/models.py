@@ -29,7 +29,7 @@ class hamsterKombat(BaseModel):
     last_check   = IntegerField(default=0)
 
 class config(BaseModel):
-    hamsterKombat        = BooleanField(default=False)
+    hamsterKombatClicker = BooleanField(default=False)
     hamsterKombatUpgrade = BooleanField(default=True)
     hamsterKombatBoosts  = BooleanField(default=True)
     useProxy             = BooleanField(default=False)

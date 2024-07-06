@@ -1,7 +1,7 @@
 from telethon import events
 from src.config import settings
 from src.database.config import conf
-from src.utils.helpers import rtl, emoticate
+from src.utils.helpers import rtl, emoticate, camel2space
 from telethon.tl.custom.button import Button
 
 async def init(bot):
@@ -12,7 +12,10 @@ async def init(bot):
 
         msg  = "<b>Change bot clickers status:\n</b>"
         list = [
-            [Button.inline(key, f"change-{key}"), Button.inline(emoticate(value), f"change-{key}")]
+            [
+                Button.inline(camel2space(key.replace('hamsterKombat', '🐹')), f"change-{key}"),
+                Button.inline(emoticate(value), f"change-{key}")
+            ]
             for key, value in info.items()
         ]
 
@@ -30,7 +33,10 @@ async def init(bot):
         
         msg  = "<b>Change bot clickers status:\n</b>"
         list = [
-            [Button.inline(key, f"change-{key}"), Button.inline(emoticate(value), f"change-{key}")]
+            [
+                Button.inline(camel2space(key.replace('hamsterKombat', '🐹')), f"change-{key}"),
+                Button.inline(emoticate(value), f"change-{key}")
+            ]
             for key, value in info.items()
         ]
 
