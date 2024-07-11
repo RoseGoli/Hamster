@@ -344,7 +344,7 @@ class Tapper:
             return False
     
     async def daily_events(self):
-        if not conf.fetch('hamsterKombat'):
+        if not conf.fetch('hamsterKombatClicker'):
             logger.info(f"{self.session} | daily hamster clicker is offline!")
             return False
         
@@ -586,7 +586,7 @@ class Tapper:
     async def run(self):
         while True:
             try:
-                if not conf.fetch('hamsterKombat'):
+                if not conf.fetch('hamsterKombatClicker'):
                     logger.info(f"{self.session} | hamster clicker is offline!")
                     await asyncio.sleep(delay=60)
                     continue
