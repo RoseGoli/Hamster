@@ -519,10 +519,6 @@ class Tapper:
                         and data['isExpired'] is False
                         and data.get('cooldownSeconds', 0) == 0
                         and data.get('maxLevel', data['level']) >= data['level']
-                    and (
-                        data.get('condition') is None
-                        or data['condition'].get('_type') == 'SubscribeTelegramChannel'
-                    )
                 ]
 
                 free_money = balance - settings.BALANCE_TO_SAVE
