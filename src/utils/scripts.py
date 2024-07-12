@@ -8,7 +8,7 @@ import hashlib
 from itertools import islice
 from src.config import settings
 from urllib.parse import unquote
-from fake_useragent import UserAgent
+from src.utils.fake_useragent import user_agent
 
 def generate_random_visitor_id():
     random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
@@ -70,8 +70,7 @@ def get_mobile_user_agent() -> str:
 
     :return: A random mobile user agent for Android platform.
     """
-    ua = UserAgent(platforms=['mobile'], os=['android'])
-    user_agent = ua.random
+    user_agent = user_agent()
     if 'wv' not in user_agent:
         parts = user_agent.split(')')
         parts[0] += '; wv'
