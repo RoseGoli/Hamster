@@ -19,7 +19,7 @@ async def once():
 
     await connectAndCacheClients(
         'hamster_kombat_bot',
-        'https://hamsterkombat.io',
+        'https://hamsterkombatgame.io',
         f"kentId{settings.OWNERS[0]}"
     )
 
@@ -35,7 +35,7 @@ async def every():
     logger.info("Cache on Every 60 minutes")
     await connectAndCacheClients(
         'hamster_kombat_bot',
-        'https://hamsterkombat.io',
+        'https://hamsterkombatgame.io',
         f"kentId{settings.OWNERS[0]}"
     )
 

@@ -20,14 +20,14 @@ class Tapper:
         self.session     = session
 
         self.http_client = Request(
-            base_url     = 'https://api.hamsterkombat.io',
+            base_url     = 'https://api.hamsterkombatgame.io',
             base_headers = {
                 'Accept'             : 'application/json',
                 'Accept-Language'    : 'en-US,ru;q=0.9',
                 'Content-Type'       : 'application/json',
                 'Connection'         : 'keep-alive',
-                'Origin'             : 'https://hamsterkombat.io',
-                'Referer'            : 'https://hamsterkombat.io/',
+                'Origin'             : 'https://hamsterkombatgame.io',
+                'Referer'            : 'https://hamsterkombatgame.io/',
                 'Sec-Fetch-Dest'     : 'empty',
                 'Sec-Fetch-Mode'     : 'cors',
                 'Sec-Fetch-Site'     : 'same-site',
@@ -297,7 +297,7 @@ class Tapper:
     async def get_nuxt_builds(self):
         response, error = await self.http_client.send_request(
             method = 'GET',
-            url    = 'https://hamsterkombat.io/_nuxt/builds/meta/8ec5c889-d6a0-4342-8ac7-94a4abfcf5b1.json',
+            url    = 'https://hamsterkombatgame.io/_nuxt/builds/meta/8ec5c889-d6a0-4342-8ac7-94a4abfcf5b1.json',
         )
 
         if response:
